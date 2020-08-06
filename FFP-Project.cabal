@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.31.2.
+-- This file has been generated from package.yaml by hpack version 0.33.0.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 778b48a268dc0ecd3baddfc328026edc199c49e0b49d5bad029fb87dc93f354e
+-- hash: ff4459ffa358f4594eac99fc16722858dc4b1f6a8d683c211570adb2ba5036b6
 
 name:           FFP-Project
 version:        0.1.0.0
@@ -27,13 +27,31 @@ source-repository head
 
 library
   exposed-modules:
+      ApiClient
+      Authenticator
       Lib
+      Objects.AccessToken
+      Objects.AccessTokenResponse
+      Objects.AuthorizationCode
+      Objects.RefreshToken
+      Objects.RefreshTokenResponse
+      Utils.HttpUtils
+      Utils.StringUtils
   other-modules:
       Paths_FFP_Project
   hs-source-dirs:
       src
   build-depends:
-      base >=4.7 && <5
+      aeson
+    , base >=4.7 && <5
+    , bytestring
+    , http-client
+    , http-client-tls
+    , http-types
+    , lens
+    , open-browser
+    , wai
+    , warp
   default-language: Haskell2010
 
 executable FFP-Project-exe
@@ -45,7 +63,16 @@ executable FFP-Project-exe
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       FFP-Project
+    , aeson
     , base >=4.7 && <5
+    , bytestring
+    , http-client
+    , http-client-tls
+    , http-types
+    , lens
+    , open-browser
+    , wai
+    , warp
   default-language: Haskell2010
 
 test-suite FFP-Project-test
@@ -58,5 +85,14 @@ test-suite FFP-Project-test
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       FFP-Project
+    , aeson
     , base >=4.7 && <5
+    , bytestring
+    , http-client
+    , http-client-tls
+    , http-types
+    , lens
+    , open-browser
+    , wai
+    , warp
   default-language: Haskell2010
