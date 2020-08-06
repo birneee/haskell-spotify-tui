@@ -34,7 +34,7 @@ clientSecret = "adf60940a07f46908c3c457a4d147713"
 
 redirectUrl = "http://localhost:8888/callback"
 
-scopes = "user-read-private user-read-email"
+scopes = "user-modify-playback-state" -- see all scopes at https://developer.spotify.com/documentation/general/guides/scopes/
 
 authorizeUrl = "https://accounts.spotify.com/authorize"
 
@@ -45,7 +45,8 @@ getAuthorizationCode = do
   let request = setQueryString
         [ ("client_id", Just $ pack clientId)
         , ("redirect_uri", Just "http://localhost:8888/callback")
-        , ("response_type", Just "code")]
+        , ("response_type", Just "code")
+        , ("scope", Just scopes)]
         (parseRequest_ authorizeUrl)
   --putStrLn $ "open this url in browser: " ++ toUrl request
   openBrowser $ toUrl request
