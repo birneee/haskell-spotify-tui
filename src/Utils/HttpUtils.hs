@@ -9,8 +9,8 @@ import qualified Network.Wai            as Wai (queryString)
 import qualified Network.Wai.Internal   as Wai (Request)
 import           Utils.StringUtils
 
-
 toUrl :: Request -> String
+-- |Create and url string from an Request type
 toUrl r =
   (if secure r then "https://" else "http://")
     ++ (unpack $ host r)
@@ -20,12 +20,15 @@ toUrl r =
     ++ (unpack $ queryString r)
 
 isQueryKeyEquals :: String -> QueryItem -> Bool
+-- |Check if a QueryItem key is equal to a String
 isQueryKeyEquals name (key, _) = name == (unpack key)
 
 getQueryParam :: String -> Query -> Maybe String
+-- |Find QueryItem value by key
 getQueryParam key query = do
   let item = find (isQueryKeyEquals key) query
   unpack <$> join (snd <$> item)
 
 getRequestQueryParam :: String -> Wai.Request -> Maybe String
+-- |Find QueryItem value by key
 getRequestQueryParam param request = getQueryParam param (Wai.queryString request)

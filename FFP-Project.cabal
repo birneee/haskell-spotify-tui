@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: ff4459ffa358f4594eac99fc16722858dc4b1f6a8d683c211570adb2ba5036b6
+-- hash: 93c87b13b11bf0d97f88c184c8b44cb10bb8b3878c1053c507f10f354eb04643
 
 name:           FFP-Project
 version:        0.1.0.0
@@ -36,6 +36,7 @@ library
       Objects.RefreshToken
       Objects.RefreshTokenResponse
       Utils.HttpUtils
+      Utils.RequestLenses
       Utils.StringUtils
   other-modules:
       Paths_FFP_Project
