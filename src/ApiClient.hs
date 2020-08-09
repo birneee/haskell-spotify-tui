@@ -2,24 +2,22 @@
 
 module ApiClient where
 
-import           Authenticator           (getAccessToken, getAuthorizationCode,
-                                          getRefreshToken)
-import           Network.HTTP.Client     (Request, httpLbs, method, newManager,
-                                          parseRequest_, requestHeaders,
-                                          responseBody, setQueryString)
+import           Authenticator (getAccessToken, getAuthorizationCode
+                              , getRefreshToken)
+import           Network.HTTP.Client (Request, httpLbs, newManager
+                                    , parseRequest_)
 import           Network.HTTP.Client.TLS (tlsManagerSettings)
-import           Objects.AccessToken     (AccessToken)
+import           Objects.AccessToken (AccessToken, toAuthorizationHeader)
 import           Utils.StringUtils
+import           Control.Lens.Operators ((&))
+import           Control.Lens.Setter ((.~))
+import           Utils.RequestLenses (method, requestHeaders)
 
 play :: AccessToken -> IO ()
 play at = do
-  let url = "https://api.spotify.com/v1/me/player/play"
-  let request = (parseRequest_ url) {
-    method = "PUT",
-    requestHeaders = [
-      ("Authorization", pack $ "Bearer " ++ (unpack at))
-    ]
-  }
+  let request = parseRequest_ "https://api.spotify.com/v1/me/player/play"
+        & method .~ "PUT"
+        & requestHeaders .~ [toAuthorizationHeader at]
   -- print $ request
   manager <- newManager tlsManagerSettings
   response <- httpLbs request manager
@@ -28,13 +26,9 @@ play at = do
 
 pause :: AccessToken -> IO ()
 pause at = do
-  let url = "https://api.spotify.com/v1/me/player/pause"
-  let request = (parseRequest_ url) {
-    method = "PUT",
-    requestHeaders = [
-      ("Authorization", pack $ "Bearer " ++ (unpack at))
-    ]
-  }
+  let request = parseRequest_ "https://api.spotify.com/v1/me/player/pause"
+        & method .~ "PUT"
+        & requestHeaders .~ [toAuthorizationHeader at]
   -- print $ request
   manager <- newManager tlsManagerSettings
   response <- httpLbs request manager
