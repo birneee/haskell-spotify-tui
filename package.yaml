@@ -30,6 +30,9 @@ dependencies:
 - open-browser
 - wai
 - warp
+- brick
+- microlens
+- vty
 
 library:
   source-dirs: src
