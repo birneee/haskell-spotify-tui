@@ -24,6 +24,15 @@ dependencies:
 - brick
 - microlens
 - vty
+- aeson
+- bytestring
+- http-client
+- http-client-tls
+- http-types
+- lens
+- open-browser
+- wai
+- warp
 
 library:
   source-dirs: src

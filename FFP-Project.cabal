@@ -1,10 +1,14 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.31.2.
+-- This file has been generated from package.yaml by hpack version 0.33.0.
 --
 -- see: https://github.com/sol/hpack
 --
+<<<<<<< HEAD
 -- hash: c02018e327771a07895f1233def411714e888d51c907588220e3ccdf61518825
+=======
+-- hash: ff4459ffa358f4594eac99fc16722858dc4b1f6a8d683c211570adb2ba5036b6
+>>>>>>> a0acf05b9c8710b7c0af4b852b20bcedd16a6265
 
 name:           FFP-Project
 version:        0.1.0.0
@@ -27,7 +31,16 @@ source-repository head
 
 library
   exposed-modules:
+      ApiClient
+      Authenticator
       Lib
+      Objects.AccessToken
+      Objects.AccessTokenResponse
+      Objects.AuthorizationCode
+      Objects.RefreshToken
+      Objects.RefreshTokenResponse
+      Utils.HttpUtils
+      Utils.StringUtils
   other-modules:
       Paths_FFP_Project
   hs-source-dirs:
@@ -37,6 +50,15 @@ library
     , brick
     , microlens
     , vty
+    , aeson
+    , bytestring
+    , http-client
+    , http-client-tls
+    , http-types
+    , lens
+    , open-browser
+    , wai
+    , warp
   default-language: Haskell2010
 
 executable FFP-Project-exe
@@ -48,10 +70,22 @@ executable FFP-Project-exe
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       FFP-Project
+    , aeson
     , base >=4.7 && <5
+<<<<<<< HEAD
     , brick
     , microlens
     , vty
+=======
+    , bytestring
+    , http-client
+    , http-client-tls
+    , http-types
+    , lens
+    , open-browser
+    , wai
+    , warp
+>>>>>>> a0acf05b9c8710b7c0af4b852b20bcedd16a6265
   default-language: Haskell2010
 
 test-suite FFP-Project-test
@@ -64,8 +98,20 @@ test-suite FFP-Project-test
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       FFP-Project
+    , aeson
     , base >=4.7 && <5
+<<<<<<< HEAD
     , brick
     , microlens
     , vty
+=======
+    , bytestring
+    , http-client
+    , http-client-tls
+    , http-types
+    , lens
+    , open-browser
+    , wai
+    , warp
+>>>>>>> a0acf05b9c8710b7c0af4b852b20bcedd16a6265
   default-language: Haskell2010
