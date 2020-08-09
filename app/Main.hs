@@ -48,7 +48,7 @@ theMap = attrMap V.defAttr
     ]
 
 -- app :: App State Event Name
-app :: App () e ()
+app :: App () e Name
 app = App { appDraw = drawUI --appDraw = drawUI
           , appChooseCursor = neverShowCursor
           , appHandleEvent = resizeOrQuit --handleEvent

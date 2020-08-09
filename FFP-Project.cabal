@@ -52,6 +52,9 @@ library
     , open-browser
     , wai
     , warp
+    , brick
+    , microlens
+    , vty
   default-language: Haskell2010
 
 executable FFP-Project-exe
@@ -73,6 +76,9 @@ executable FFP-Project-exe
     , open-browser
     , wai
     , warp
+    , brick
+    , microlens
+    , vty
   default-language: Haskell2010
 
 test-suite FFP-Project-test
