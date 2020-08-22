@@ -26,6 +26,7 @@ import           Objects.RefreshTokenResponse (refreshToken)
 import           Utils.HttpUtils              (getRequestQueryParam, toUrl)
 import           Utils.RequestLenses          (method, queryString,
                                                urlEncodedBody)
+import           Utils.ResponseLenses         (body)
 import           Utils.StringUtils
 import           Web.Browser                  (openBrowser)
 
@@ -64,8 +65,8 @@ getRefreshToken ac = do
            , ("client_secret", clientSecret)]
   manager <- newManager tlsManagerSettings
   response <- httpLbs request manager
-  let body = responseBody response
-  let tr = fromJust $ decode body
+  let rawBody = response ^. body
+  let tr = fromJust $ decode rawBody
   return $ tr ^. refreshToken
 
 getAccessToken :: RefreshToken -> IO AccessToken
@@ -79,18 +80,9 @@ getAccessToken rt = do
            , ("client_secret", clientSecret)]
   manager <- newManager tlsManagerSettings
   response <- httpLbs request manager
-  let body = responseBody response
-  let tr = fromJust $ decode body
+  let rawBody = response ^. body
+  let tr = fromJust $ decode rawBody
   return $ tr ^. accessToken
-
-testAuthorization :: IO ()
-testAuthorization = do
-  ac <- getAuthorizationCode
-  print $ ac
-  rt <- getRefreshToken ac
-  print $ rt
-  at <- getAccessToken rt
-  print at
 
 awaitAuthorizationCallback :: IO String
 awaitAuthorizationCallback = do

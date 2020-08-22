@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 6628f8b86571f20b7572fbac308d40c1963f4fd223c3e4b4f870ffbac6e0bbf5
+-- hash: 87146836cc27d43f4a505c970fe0763de1975e48b20095df636a72852f3e471b
 
 name:           FFP-Project
 version:        0.1.0.0
@@ -94,6 +94,7 @@ test-suite FFP-Project-test
   main-is: Spec.hs
   other-modules:
       ApiClientTest
+      AuthenticatorTest
       ImageAnsiTerminalUtilsTest
       Paths_FFP_Project
   hs-source-dirs:
