@@ -15,24 +15,24 @@ import           Codec.Picture.Types                 (PixelRGB8)
 import           Control.Lens.Getter                 (view, (^.))
 import           Control.Lens.Operators              ((&), (<&>))
 import           Control.Lens.Setter                 ((.~))
-import           Data.Aeson                          (decode)
+import           Data.Aeson                          (decode, object, (.=))
 import           Network.HTTP.Client                 (httpLbs, newManager,
-                                                      parseRequest,
-                                                      parseRequest_)
+                                                      parseRequest)
 import           Network.HTTP.Client.TLS             (tlsManagerSettings)
 import           Network.HTTP.Types                  (Status)
 import           Utils.HttpUtils                     (getImage)
 import           Utils.LensUtils                     ((?^.), (?^.?))
 import           Utils.ListLenses                    (index)
-import           Utils.RequestLenses                 (method, queryString,
+import           Utils.RequestLenses                 (jsonBody, method,
+                                                      queryString,
                                                       requestHeaders)
 import           Utils.ResponseLenses                (body, status)
 
 play :: AccessToken -> IO Status
 play at = do
-  let request = parseRequest_ "https://api.spotify.com/v1/me/player/play"
-        & method .~ "PUT"
-        & requestHeaders .~ [toAuthorizationHeader at]
+  request <- parseRequest "https://api.spotify.com/v1/me/player/play"
+        <&> method .~ "PUT"
+        <&> requestHeaders .~ [toAuthorizationHeader at]
   -- print $ request
   manager <- newManager tlsManagerSettings
   response <- httpLbs request manager
@@ -41,9 +41,9 @@ play at = do
 
 pause :: AccessToken -> IO Status
 pause at = do
-  let request = parseRequest_ "https://api.spotify.com/v1/me/player/pause"
-        & method .~ "PUT"
-        & requestHeaders .~ [toAuthorizationHeader at]
+  request <- parseRequest "https://api.spotify.com/v1/me/player/pause"
+        <&> method .~ "PUT"
+        <&> requestHeaders .~ [toAuthorizationHeader at]
   -- print $ request
   manager <- newManager tlsManagerSettings
   response <- httpLbs request manager
@@ -52,37 +52,47 @@ pause at = do
 
 next :: AccessToken -> IO Status
 next at = do
-  let request = parseRequest_ "https://api.spotify.com/v1/me/player/next"
-        & method .~ "POST"
-        & requestHeaders .~ [toAuthorizationHeader at]
+  request <- parseRequest "https://api.spotify.com/v1/me/player/next"
+        <&> method .~ "POST"
+        <&> requestHeaders .~ [toAuthorizationHeader at]
   manager <- newManager tlsManagerSettings
   response <- httpLbs request manager
   return $ response ^. status
 
 previous :: AccessToken -> IO Status
 previous at = do
-  let request = parseRequest_ "https://api.spotify.com/v1/me/player/previous"
-        & method .~ "POST"
-        & requestHeaders .~ [toAuthorizationHeader at]
+  request <- parseRequest "https://api.spotify.com/v1/me/player/previous"
+        <&> method .~ "POST"
+        <&> requestHeaders .~ [toAuthorizationHeader at]
   manager <- newManager tlsManagerSettings
   response <- httpLbs request manager
   return $ response ^. status
 
 setVolume :: AccessToken -> Int -> IO Status
 setVolume accessToken volumePercent = do
-  let request = parseRequest_ "https://api.spotify.com/v1/me/player/volume"
-        & method .~ "PUT"
-        & requestHeaders .~ [toAuthorizationHeader accessToken]
-        & queryString .~ [("volume_percent", Just $ show volumePercent)]
+  request <- parseRequest "https://api.spotify.com/v1/me/player/volume"
+        <&> method .~ "PUT"
+        <&> requestHeaders .~ [toAuthorizationHeader accessToken]
+        <&> queryString .~ [("volume_percent", Just $ show volumePercent)]
+  manager <- newManager tlsManagerSettings
+  response <- httpLbs request manager
+  return $ response ^. status
+
+setPlayer :: AccessToken -> String -> IO Status
+setPlayer accessToken deviceId = do
+  request <- parseRequest "https://api.spotify.com/v1/me/player"
+        <&> method .~ "PUT"
+        <&> requestHeaders .~ [toAuthorizationHeader accessToken]
+        <&> jsonBody .~ object ["device_ids" .= [deviceId]]
   manager <- newManager tlsManagerSettings
   response <- httpLbs request manager
   return $ response ^. status
 
 getCurrentlyPlaying :: AccessToken -> IO (Status, Maybe CurrentlyPlayingResponse)
 getCurrentlyPlaying at = do
-  let request = parseRequest_ "https://api.spotify.com/v1/me/player/currently-playing"
-        & method .~ "GET"
-        & requestHeaders .~ [toAuthorizationHeader at]
+  request <- parseRequest "https://api.spotify.com/v1/me/player/currently-playing"
+        <&> method .~ "GET"
+        <&> requestHeaders .~ [toAuthorizationHeader at]
   -- print $ request
   manager <- newManager tlsManagerSettings
   response <- httpLbs request manager

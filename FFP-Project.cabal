@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: dfa117becda07aa59dcc282f63720d0ded9a3de9ea9913d8d22926b294858bec
+-- hash: ac73e74edbd01d0370d721f7600aa03a089add696b4f3d61bf9cb0c92227dd0f
 
 name:           FFP-Project
 version:        0.1.0.0
@@ -61,6 +61,7 @@ library
     , http-types
     , lens
     , open-browser
+    , relude
     , wai
     , warp
   default-language: Haskell2010
@@ -84,6 +85,7 @@ executable haskell-spotify-tui
     , http-types
     , lens
     , open-browser
+    , relude
     , wai
     , warp
   default-language: Haskell2010
@@ -111,6 +113,7 @@ test-suite FFP-Project-test
     , http-types
     , lens
     , open-browser
+    , relude
     , wai
     , warp
   default-language: Haskell2010

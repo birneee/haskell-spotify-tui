@@ -11,13 +11,13 @@ import           Control.Concurrent              (MVar, forkIO, killThread,
                                                   newEmptyMVar, putMVar,
                                                   takeMVar, threadDelay)
 import           Control.Lens.Getter             ((^.))
-import           Control.Lens.Operators          ((&))
+import           Control.Lens.Operators          ((<&>))
 import           Control.Lens.Setter             ((.~))
 import           Data.Aeson                      (decode)
 import           Data.List                       (intercalate)
 import           Data.Maybe                      (fromJust)
 import           Network.HTTP.Client             (httpLbs, newManager,
-                                                  parseRequest_, responseBody)
+                                                  parseRequest, responseBody)
 import           Network.HTTP.Client.TLS         (tlsManagerSettings)
 import           Network.HTTP.Types              (status200, status400)
 import           Network.Wai                     (Application, rawPathInfo,
@@ -48,9 +48,9 @@ scopes = intercalate " " [
 
 getAuthorizationCode :: IO AuthorizationCode
 getAuthorizationCode = do
-  let request = parseRequest_ "https://accounts.spotify.com/authorize"
-        & method .~ "GET"
-        & queryString
+  request <- parseRequest "https://accounts.spotify.com/authorize"
+        <&> method .~ "GET"
+        <&> queryString
         .~ [ ("client_id", Just clientId)
            , ("redirect_uri", Just "http://localhost:8888/callback")
            , ("response_type", Just "code")
@@ -61,9 +61,9 @@ getAuthorizationCode = do
 
 getRefreshToken :: AuthorizationCode -> IO RefreshToken
 getRefreshToken ac = do
-  let request = parseRequest_ "https://accounts.spotify.com/api/token"
-        & method .~ "POST"
-        & urlEncodedBody
+  request <- parseRequest "https://accounts.spotify.com/api/token"
+        <&> method .~ "POST"
+        <&> urlEncodedBody
         .~ [ ("grant_type", "authorization_code")
            , ("code", unpack ac)
            , ("redirect_uri", redirectUrl)
@@ -77,9 +77,9 @@ getRefreshToken ac = do
 
 getAccessToken :: RefreshToken -> IO AccessToken
 getAccessToken rt = do
-  let request = parseRequest_ "https://accounts.spotify.com/api/token"
-        & method .~ "POST"
-        & urlEncodedBody
+  request <- parseRequest "https://accounts.spotify.com/api/token"
+        <&> method .~ "POST"
+        <&> urlEncodedBody
         .~ [ ("grant_type", "refresh_token")
            , ("refresh_token", unpack rt)
            , ("client_id", clientId)

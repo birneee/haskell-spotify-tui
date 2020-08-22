@@ -1,6 +1,6 @@
 module ApiClientTest where
 
-import           ApiClient                           (getAvailableDevices,
+import           ApiClient                           (setPlayer, getAvailableDevices,
                                                       getCurrentAlbumCover,
                                                       getCurrentlyPlaying,
                                                       getPlayer, next, pause,
@@ -51,6 +51,11 @@ testGetAvailableDevices = do
 testGetPlayer :: IO (Status, Maybe PlayerResponse)
 testGetPlayer = do
   accessToken >>= getPlayer
+
+testSetPlayer :: String -> IO Status
+testSetPlayer deviceId = do
+  at <- accessToken
+  setPlayer at deviceId
 
 testSetVolume :: Int -> IO Status
 testSetVolume volumePercent = do
