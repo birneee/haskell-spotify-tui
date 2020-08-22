@@ -32,6 +32,7 @@ dependencies:
 - lens
 - open-browser
 - relude
+- temporary
 - text
 - wai
 - warp

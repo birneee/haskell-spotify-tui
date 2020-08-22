@@ -1,21 +1,11 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RankNTypes        #-}
 {-# LANGUAGE TemplateHaskell   #-}
 
-module Objects.CurrentlyPlayingResponse where
+module ApiObjects.Item where
 
-import           Control.Applicative (optional)
-import           Control.Lens        (makeLenses)
-import           Data.Aeson          (FromJSON, Object, parseJSON, (.:), (.:?))
-import           Data.Aeson.Types    (Parser, Value (Object))
-
-data CurrentlyPlayingResponse = CurrentlyPlayingResponse
-  { _timestamp  :: Int,
-    _progressMs :: Int,
-    _isPlaying  :: Bool,
-    _item       :: Item
-  }
-  deriving (Show)
+import           Control.Lens      (makeLenses)
+import           Data.Aeson        (FromJSON, parseJSON, (.:))
+import           Data.Aeson.Types  (Value (Object))
 
 data Item = Item
   {
@@ -53,14 +43,6 @@ data Image = Image
   }
   deriving(Show)
 
-instance FromJSON CurrentlyPlayingResponse where
-  parseJSON (Object v) =
-    CurrentlyPlayingResponse
-      <$> (v .: "timestamp")
-      <*> (v .: "progress_ms")
-      <*> (v .: "is_playing")
-      <*> (v .: "item")
-
 instance FromJSON Item where
   parseJSON (Object v) =
     Item
@@ -93,7 +75,6 @@ instance FromJSON Image where
       <*> (v .: "width")
       <*> (v .: "height")
 
-$(makeLenses ''CurrentlyPlayingResponse)
 $(makeLenses ''Item)
 $(makeLenses ''Album)
 $(makeLenses ''Artist)

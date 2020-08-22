@@ -1,7 +1,7 @@
-module Objects.AuthorizationCode where
+module ApiObjects.AuthorizationCode where
 
-import GHC.Exts          (IsString (..))
-import Utils.StringUtils
+import           GHC.Exts          (IsString (..))
+import           Utils.StringUtils
 
 newtype AuthorizationCode = AuthorizationCode String deriving (Show)
 

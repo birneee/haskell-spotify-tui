@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 87146836cc27d43f4a505c970fe0763de1975e48b20095df636a72852f3e471b
+-- hash: 07a49e22638fdc34aff0a293b33feaf0fd902e54d4d8bcada5f3ac0428722c93
 
 name:           FFP-Project
 version:        0.1.0.0
@@ -28,15 +28,20 @@ source-repository head
 library
   exposed-modules:
       ApiClient
+      ApiObjects.AccessToken
+      ApiObjects.AccessTokenResponse
+      ApiObjects.AuthorizationCode
+      ApiObjects.CurrentlyPlayingResponse
+      ApiObjects.Device
+      ApiObjects.DevicesResponse
+      ApiObjects.Item
+      ApiObjects.PlayerResponse
+      ApiObjects.RefreshToken
+      ApiObjects.RefreshTokenResponse
       Authenticator
-      Objects.AccessToken
-      Objects.AccessTokenResponse
-      Objects.AuthorizationCode
-      Objects.CurrentlyPlayingResponse
-      Objects.RefreshToken
-      Objects.RefreshTokenResponse
       Utils.HttpUtils
       Utils.ImageAnsiTerminalUtils
+      Utils.LensUtils
       Utils.ListLenses
       Utils.RequestLenses
       Utils.ResponseLenses
@@ -58,6 +63,7 @@ library
     , lens
     , open-browser
     , relude
+    , temporary
     , text
     , wai
     , warp
@@ -84,6 +90,7 @@ executable haskell-spotify-tui
     , lens
     , open-browser
     , relude
+    , temporary
     , text
     , wai
     , warp
@@ -114,6 +121,7 @@ test-suite FFP-Project-test
     , lens
     , open-browser
     , relude
+    , temporary
     , text
     , wai
     , warp
