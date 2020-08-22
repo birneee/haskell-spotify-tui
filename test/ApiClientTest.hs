@@ -1,6 +1,6 @@
 module ApiClientTest where
 
-import           ApiClient                           (setPlayer, getAvailableDevices,
+import           ApiClient                           (searchTrack, playTrack, setPlayer, getAvailableDevices,
                                                       getCurrentAlbumCover,
                                                       getCurrentlyPlaying,
                                                       getPlayer, next, pause,
@@ -9,6 +9,7 @@ import           ApiObjects.AccessToken              (AccessToken)
 import           ApiObjects.CurrentlyPlayingResponse (CurrentlyPlayingResponse)
 import           ApiObjects.DevicesResponse          (DevicesResponse)
 import           ApiObjects.PlayerResponse           (PlayerResponse)
+import           ApiObjects.SearchResponse           (SearchResponse)
 import           Authenticator                       (getAccessToken,
                                                       getAuthorizationCode,
                                                       getRefreshToken)
@@ -61,6 +62,16 @@ testSetVolume :: Int -> IO Status
 testSetVolume volumePercent = do
   at <- accessToken
   setVolume at volumePercent
+
+testSearchTrack :: String -> IO (Status, Maybe SearchResponse)
+testSearchTrack query = do
+  at <- accessToken
+  searchTrack at query
+
+testPlayTrack :: String -> IO Status
+testPlayTrack uri = do
+  at <- accessToken
+  playTrack at uri
 
 -- helper
 

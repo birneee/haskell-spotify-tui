@@ -1,22 +1,23 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell   #-}
 
-module ApiObjects.Item where
+module ApiObjects.Track where
 
-import           Control.Lens      (makeLenses)
-import           Data.Aeson        (FromJSON, parseJSON, (.:))
-import           Data.Aeson.Types  (Value (Object))
+import           Control.Lens     (makeLenses)
+import           Data.Aeson       (FromJSON, parseJSON, (.:))
+import           Data.Aeson.Types (Value (Object))
 
-data Item = Item
+data Track = Track
   {
-    _itemId      :: String,
+    _trackId     :: String,
     _diskNumber  :: Int,
     _durationMs  :: Int,
-    _itemName    :: String,
+    _trackName   :: String,
     _popularity  :: Int,
     _trackNumber :: Int,
     _album       :: Album,
-    _artists     :: [Artist]
+    _artists     :: [Artist],
+    _uri         :: String
   }
   deriving (Show)
 
@@ -43,9 +44,9 @@ data Image = Image
   }
   deriving(Show)
 
-instance FromJSON Item where
+instance FromJSON Track where
   parseJSON (Object v) =
-    Item
+    Track
       <$> (v .: "id")
       <*> (v .: "disc_number")
       <*> (v .: "duration_ms")
@@ -54,6 +55,7 @@ instance FromJSON Item where
       <*> (v .: "track_number")
       <*> (v .: "album")
       <*> (v .: "artists")
+      <*> (v .: "uri")
 
 instance FromJSON Album where
   parseJSON (Object v) =
@@ -75,7 +77,7 @@ instance FromJSON Image where
       <*> (v .: "width")
       <*> (v .: "height")
 
-$(makeLenses ''Item)
+$(makeLenses ''Track)
 $(makeLenses ''Album)
 $(makeLenses ''Artist)
 $(makeLenses ''Image)
