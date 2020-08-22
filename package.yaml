@@ -40,7 +40,7 @@ library:
   source-dirs: src
 
 executables:
-  FFP-Project-exe:
+  haskell-spotify-tui:
     main:                Main.hs
     source-dirs:         app
     ghc-options:
