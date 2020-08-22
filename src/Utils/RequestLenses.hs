@@ -1,6 +1,7 @@
 module Utils.RequestLenses where
 
-import           Control.Lens
+import           Control.Lens        (Lens', lens)
+import           Control.Lens.Setter (Setter')
 import           Data.ByteString     (ByteString)
 import qualified Network.HTTP.Client as H (Request, method, requestHeaders,
                                            secure, setQueryString,
@@ -35,19 +36,15 @@ secure = lens getter setter
     setter :: H.Request -> Bool -> H.Request
     setter req val = req {H.secure = val}
 
-queryString :: Lens' H.Request [(String, Maybe String)]
-queryString = lens getter setter
+queryString :: Setter' H.Request [(String, Maybe String)]
+queryString = lens undefined setter
   where
-    getter :: H.Request -> [(String, Maybe String)]
-    getter req = undefined -- TODO implement
     setter :: H.Request -> [(String, Maybe String)] -> H.Request
     setter req val = H.setQueryString (packQueryString val) req
 
-urlEncodedBody :: Lens' H.Request [(String, String)]
-urlEncodedBody = lens getter setter
+urlEncodedBody :: Setter' H.Request [(String, String)]
+urlEncodedBody = lens undefined setter
   where
-    getter :: H.Request -> [(String, String)]
-    getter req = undefined -- TODO implement
     setter :: H.Request -> [(String, String)] -> H.Request
     setter req val = H.urlEncodedBody (packUrlEncodedBody val) req
 

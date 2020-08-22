@@ -37,7 +37,7 @@ clientSecret = "adf60940a07f46908c3c457a4d147713"
 
 redirectUrl = "http://localhost:8888/callback"
 
-scopes = "user-modify-playback-state" -- see all scopes at https://developer.spotify.com/documentation/general/guides/scopes/
+scopes = "user-modify-playback-state user-read-currently-playing" -- see all scopes at https://developer.spotify.com/documentation/general/guides/scopes/
 
 getAuthorizationCode :: IO AuthorizationCode
 getAuthorizationCode = do
