@@ -31,5 +31,5 @@ testGetCurrentAlbumCover :: IO ()
 testGetCurrentAlbumCover = do
   at <- getAuthorizationCode >>= getRefreshToken >>= getAccessToken
   (status, image) <- getCurrentAlbumCover at
-  let scaled = scaleBilinear 30 15 $ fromJust image
+  let scaled = scaleBilinear 30 30 $ fromJust image
   putStrLn $ imageToAnsi scaled
