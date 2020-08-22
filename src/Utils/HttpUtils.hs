@@ -7,8 +7,8 @@ import           Control.Lens.Operators  ((&))
 import           Control.Lens.Setter     ((.~))
 import           Control.Monad           (join)
 import qualified Data.ByteString         as BS
-import           Data.ByteString.Lazy    (ByteString)
 import qualified Data.ByteString.Lazy    as LBS
+import           Data.ByteString.Lazy    (ByteString)
 import           Data.Foldable           (find)
 import           Network.HTTP.Client     (Request, host, httpLbs, newManager,
                                           parseRequest_, path, port,

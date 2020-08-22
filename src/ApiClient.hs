@@ -3,40 +3,25 @@
 -- | Spotify API https://developer.spotify.com/documentation/web-api/reference-beta
 module ApiClient where
 
-import           Authenticator                    (getAccessToken,
-                                                   getAuthorizationCode,
-                                                   getRefreshToken)
-import           Codec.Picture                    (convertRGB8, decodeImage,
-                                                   imageWidth)
-import           Codec.Picture.Types              (DynamicImage, PixelRGB8)
-import           Codec.Picture.Types              (Image)
-import           Control.Lens                     (element)
-import           Control.Lens                     (element)
-import           Control.Lens.Getter              ((^.))
-import           Control.Lens.Getter              (view)
-import           Control.Lens.Operators           ((&))
-import           Control.Lens.Setter              ((.~))
-import           Data.Aeson                       (decode)
-import qualified Data.ByteString                  as BS (pack)
-import           Data.ByteString.Lazy             (ByteString)
-import qualified Data.ByteString.Lazy             as LBS (unpack)
-import           Data.Either.Combinators          (rightToMaybe)
-import           Network.HTTP.Client              (Request, httpLbs, newManager,
+import Codec.Picture.Types              (Image)
+import Codec.Picture.Types              (PixelRGB8)
+import Control.Lens.Getter              ((^.))
+import Control.Lens.Getter              (view)
+import Control.Lens.Operators           ((&))
+import Control.Lens.Setter              ((.~))
+import Data.Aeson                       (decode)
+import Network.HTTP.Client              (httpLbs, newManager,
                                                    parseRequest_)
-import           Network.HTTP.Client.TLS          (tlsManagerSettings)
-import           Network.HTTP.Types               (Status)
-import           Objects.AccessToken              (AccessToken,
+import Network.HTTP.Client.TLS          (tlsManagerSettings)
+import Network.HTTP.Types               (Status)
+import Objects.AccessToken              (AccessToken,
                                                    toAuthorizationHeader)
-import           Objects.CurrentlyPlayingResponse (CurrentlyPlayingResponse,
+import Objects.CurrentlyPlayingResponse (CurrentlyPlayingResponse,
                                                    album, images, item, url)
-import qualified Objects.CurrentlyPlayingResponse as CPL (Image)
-import           Relude                           ((!!?))
-import           Relude.Monad                     (MonadTrans (lift))
-import           Utils.HttpUtils                  (getImage)
-import           Utils.ListLenses                 (index)
-import           Utils.RequestLenses              (method, requestHeaders)
-import           Utils.ResponseLenses             (body, status)
-import           Utils.StringUtils
+import Utils.HttpUtils                  (getImage)
+import Utils.ListLenses                 (index)
+import Utils.RequestLenses              (method, requestHeaders)
+import Utils.ResponseLenses             (body, status)
 
 play :: AccessToken -> IO Status
 play at = do

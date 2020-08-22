@@ -8,7 +8,6 @@ import           Control.Applicative (optional)
 import           Control.Lens        (makeLenses)
 import           Data.Aeson          (FromJSON, Object, parseJSON, (.:), (.:?))
 import           Data.Aeson.Types    (Parser, Value (Object))
-import           Data.Text
 
 data CurrentlyPlayingResponse = CurrentlyPlayingResponse
   { _timestamp  :: Int,

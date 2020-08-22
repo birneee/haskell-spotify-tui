@@ -2,7 +2,7 @@ module Utils.ResponseLenses where
 
 import           Control.Lens.Getter  (Getter, to)
 import           Data.ByteString.Lazy (ByteString)
-import           Network.HTTP.Client  (Response, responseStatus, responseBody)
+import           Network.HTTP.Client  (Response, responseBody, responseStatus)
 import           Network.HTTP.Types   (Status)
 
 status :: Getter (Response ByteString) Status

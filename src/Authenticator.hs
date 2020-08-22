@@ -10,12 +10,12 @@ import           Control.Lens.Operators       ((&))
 import           Control.Lens.Setter          ((.~))
 import           Data.Aeson                   (decode)
 import           Data.Maybe                   (fromJust)
-import           Network.HTTP.Client          (Request, httpLbs, newManager,
+import           Network.HTTP.Client          (httpLbs, newManager,
                                                parseRequest_, responseBody)
 import           Network.HTTP.Client.TLS      (tlsManagerSettings)
 import           Network.HTTP.Types           (status200, status400)
 import           Network.Wai                  (Application, rawPathInfo,
-                                               rawQueryString, responseLBS)
+                                               responseLBS)
 import           Network.Wai.Handler.Warp     (defaultSettings, runSettings,
                                                setHost, setPort)
 import           Objects.AccessToken          (AccessToken)

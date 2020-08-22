@@ -3,8 +3,9 @@
 
 module Objects.AccessTokenResponse where
 
-import           Control.Lens
-import           Data.Aeson
+import           Control.Lens        (makeLenses)
+import           Data.Aeson          (FromJSON, parseJSON, (.:))
+import           Data.Aeson.Types    (Value (Object))
 import           Objects.AccessToken
 
 data AccessTokenResponse = AccessTokenResponse

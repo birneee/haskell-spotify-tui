@@ -1,10 +1,9 @@
 module Utils.ImageAnsiTerminalUtils (imageToAnsi) where
 
-import           Codec.Picture     (pixelAt)
-import           Codec.Picture     (Image (imageHeight, imageWidth),
-                                    PixelRGB8 (PixelRGB8))
-import           Control.Exception (assert)
-import           Data.List         (intercalate)
+import           Codec.Picture (Image (imageHeight, imageWidth),
+                                PixelRGB8 (PixelRGB8))
+import           Codec.Picture (pixelAt)
+import           Data.List     (intercalate)
 
 foregroundEscapePrefix :: [Char]
 foregroundEscapePrefix = "\ESC[38;2;"

@@ -1,9 +1,9 @@
 module ImageAnsiTerminalUtilsTest where
 
-import Utils.HttpUtils (getImage)
-import Utils.ImageAnsiTerminalUtils (imageToAnsi)
-import Data.Maybe (fromJust)
-import Codec.Picture.Extra (scaleBilinear)
+import           Codec.Picture.Extra          (scaleBilinear)
+import           Data.Maybe                   (fromJust)
+import           Utils.HttpUtils              (getImage)
+import           Utils.ImageAnsiTerminalUtils (imageToAnsi)
 
 printCover :: IO ()
 printCover = do

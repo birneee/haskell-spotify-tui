@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 9fc0358454f3f7f4c2e0433f4914fddd6870c5fb3f84f488cbf9b4da01016d0c
+-- hash: ee88e5ac3645f29124e2d0aec0a4b225b9da48724fd30cba9ab3423ab41614d1
 
 name:           FFP-Project
 version:        0.1.0.0
@@ -29,7 +29,6 @@ library
   exposed-modules:
       ApiClient
       Authenticator
-      Lib
       Objects.AccessToken
       Objects.AccessTokenResponse
       Objects.AuthorizationCode
