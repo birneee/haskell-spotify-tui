@@ -1,12 +1,12 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell   #-}
 
-module Objects.RefreshTokenResponse where
+module ApiObjects.RefreshTokenResponse where
 
 import           Control.Lens
 import           Data.Aeson
-import           Objects.AccessToken
-import           Objects.RefreshToken
+import           ApiObjects.AccessToken
+import           ApiObjects.RefreshToken
 
 data RefreshTokenResponse = RefreshTokenResponse
   { _accessToken  :: AccessToken,

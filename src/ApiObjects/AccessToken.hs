@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Objects.AccessToken where
+module ApiObjects.AccessToken where
 
 import           GHC.Exts                  (IsString (..))
 import           Network.HTTP.Types.Header (Header)
