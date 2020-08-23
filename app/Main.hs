@@ -1,7 +1,6 @@
 module Main where
 import qualified Graphics.Vty as V
 
-<<<<<<< HEAD
 import Brick
   (App(..), AttrMap, BrickEvent(..), EventM, Next, Widget
   , customMain, neverShowCursor
@@ -19,6 +18,10 @@ import Brick
 import qualified Brick.Widgets.Center as C
 import qualified Brick.Widgets.Border as B
 import qualified Brick.Widgets.Border.Style as BS
+import qualified Brick.Main as M
+import qualified Graphics.Vty as V
+
+
 import Brick.Types
   ( Widget
   , Padding(..)
@@ -33,14 +36,13 @@ import Brick.Markup (markup, (@?))
 import Brick.AttrMap (attrMap, AttrMap)
 import Data.Text.Markup ((@@))
 
--- ui :: Widget ()
--- ui = str "Hello, world!"
 data State = String
 data Event = Event
+data Tick = Tick
 type Name = ()
 
--- ui = str "Hello, world!"
-
+data Song = Song {title::String, length::Double, playing::Bool, inList:: Bool} deriving Show
+-- song1 = Song { "123",100, False, False }
 
 theMap :: AttrMap
 theMap = attrMap V.defAttr
@@ -49,10 +51,10 @@ theMap = attrMap V.defAttr
     ]
 
 -- app :: App State Event Name
-app :: App () e ()
+app :: App () e Name
 app = App { appDraw = drawUI --appDraw = drawUI
-          , appChooseCursor = neverShowCursor
-          , appHandleEvent = resizeOrQuit --handleEvent
+          , appChooseCursor = M.showFirstCursor
+          , appHandleEvent = handleEvent
           , appStartEvent = return
           , appAttrMap = const theMap
           }
@@ -60,21 +62,27 @@ app = App { appDraw = drawUI --appDraw = drawUI
 main :: IO ()
 main = defaultMain app ()
 
---handleEvent :: State -> BrickEvent Event Name
---handleEvent = undefined
-
 -- drawUI :: String -> [Widget String]
 drawUI :: () -> [Widget a]
-drawUI _ =  [vBox [ drawTest, drawTest]]
+drawUI _ =  [C.vCenter $ vLimit 25 $ hLimit 150 $ B.borderWithLabel label $ (drawMenu)]
+            where label = str "FFP Musik-Player"
 
-drawTest = withBorderStyle BS.unicodeBold
-  $ B.borderWithLabel (str "Score")
-  $ C.hCenter
-  $ padAll 1
-  $ str $ show 1
 
 --theMap = undefined
-=======
-main :: IO ()
-main = putStrLn "hello"
->>>>>>> 15c2fcdb7a9e4cd565387673be095ef5003ab25c
+
+drawIcon = withBorderStyle BS.unicodeBold $ B.border $ str "Icon"
+drawMenu = vBox [ drawPlay, padTop (Pad 1) $ drawStop, padTop (Pad 1) $ drawPause]
+
+drawPlay = str "Play"
+
+drawStop = str "Stop"
+
+drawPause = str "Pause"
+
+-- appHandleEvent :: s -> BrickEvent n e -> EventM n (Next s)
+-- handleEvent :: Song -> BrickEvent Name e -> EventM Name (Next Song)
+-- handleEvent s (VtyEvent ev) = case ev of
+--   V.EvKey ()
+handleEvent =undefined
+action :: Song -> Song
+action s = s
