@@ -36,6 +36,9 @@ dependencies:
 - relude
 - wai
 - warp
+- brick
+- microlens
+- vty
 
 library:
   source-dirs: src
