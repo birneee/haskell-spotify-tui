@@ -40,10 +40,6 @@ data State = String
 data Event = Event
 data Tick = Tick
 type Name = ()
-<<<<<<< HEAD
-
-=======
->>>>>>> origin/tui
 data Song = Song {title::String, length::Double, playing::Bool, inList:: Bool} deriving Show
 -- song1 = Song { "123",100, False, False }
 
