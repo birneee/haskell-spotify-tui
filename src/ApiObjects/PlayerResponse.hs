@@ -4,7 +4,7 @@
 module ApiObjects.PlayerResponse where
 
 import           ApiObjects.Device   (Device)
-import           ApiObjects.Item     (Item)
+import           ApiObjects.Track    (Track)
 import           Control.Applicative (optional)
 import           Control.Lens        (makeLenses)
 import           Data.Aeson          (FromJSON, parseJSON, (.:))
@@ -17,7 +17,7 @@ data PlayerResponse = PlayerResponse
       _progressMs           :: Maybe String,
       _isPlaying            :: Bool,
       _currentlyPlayingType :: String,
-      _item                 :: Maybe Item,
+      _item                 :: Maybe Track,
       _shuffleState         :: Bool,
       _repeatState          :: String
   } deriving (Show)

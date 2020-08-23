@@ -4,7 +4,7 @@
 
 module ApiObjects.CurrentlyPlayingResponse where
 
-import           ApiObjects.Item     (Item)
+import           ApiObjects.Track    (Track)
 import           Control.Applicative (optional)
 import           Control.Lens        (makeLenses)
 import           Data.Aeson          (FromJSON, parseJSON, (.:), (.:?))
@@ -14,7 +14,7 @@ data CurrentlyPlayingResponse = CurrentlyPlayingResponse
   { _timestamp  :: Int,
     _progressMs :: Maybe Int,
     _isPlaying  :: Bool,
-    _item       :: Maybe Item
+    _item       :: Maybe Track
   }
   deriving (Show)
 
