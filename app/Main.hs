@@ -1,6 +1,7 @@
 module Main where
 import qualified Graphics.Vty as V
 
+<<<<<<< HEAD
 import Brick
   (App(..), AttrMap, BrickEvent(..), EventM, Next, Widget
   , customMain, neverShowCursor
@@ -73,3 +74,7 @@ drawTest = withBorderStyle BS.unicodeBold
   $ str $ show 1
 
 --theMap = undefined
+=======
+main :: IO ()
+main = putStrLn "hello"
+>>>>>>> 15c2fcdb7a9e4cd565387673be095ef5003ab25c

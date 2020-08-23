@@ -1,4 +1,4 @@
-module Objects.RefreshToken where
+module ApiObjects.RefreshToken where
 
 import           GHC.Exts          (IsString (..))
 import           Utils.StringUtils

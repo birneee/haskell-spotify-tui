@@ -1,4 +1,4 @@
-module Objects.AuthorizationCode where
+module ApiObjects.AuthorizationCode where
 
 import           GHC.Exts          (IsString (..))
 import           Utils.StringUtils

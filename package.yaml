@@ -29,8 +29,11 @@ dependencies:
 - http-client
 - http-client-tls
 - http-types
+- JuicyPixels
+- JuicyPixels-extra
 - lens
 - open-browser
+- relude
 - wai
 - warp
 
@@ -38,7 +41,7 @@ library:
   source-dirs: src
 
 executables:
-  FFP-Project-exe:
+  haskell-spotify-tui:
     main:                Main.hs
     source-dirs:         app
     ghc-options:

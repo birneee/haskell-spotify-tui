@@ -1,11 +1,12 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell   #-}
 
-module Objects.AccessTokenResponse where
+module ApiObjects.AccessTokenResponse where
 
-import           Control.Lens
-import           Data.Aeson
-import           Objects.AccessToken
+import           Control.Lens        (makeLenses)
+import           Data.Aeson          (FromJSON, parseJSON, (.:))
+import           Data.Aeson.Types    (Value (Object))
+import           ApiObjects.AccessToken
 
 data AccessTokenResponse = AccessTokenResponse
   { _accessToken :: AccessToken
