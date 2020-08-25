@@ -3,7 +3,8 @@ module ApiObjects.AuthorizationCode where
 import           GHC.Exts          (IsString (..))
 import           Utils.StringUtils
 
-newtype AuthorizationCode = AuthorizationCode String deriving (Show)
+newtype AuthorizationCode = AuthorizationCode String
+    deriving (Show, Eq)
 
 instance IsString AuthorizationCode where
     fromString s = pack s
