@@ -20,8 +20,6 @@ import qualified Brick.Widgets.Border as B
 import qualified Brick.Widgets.Border.Style as BS
 import qualified Brick.Main as M
 import qualified Graphics.Vty as V
-
-
 import Brick.Types
   ( Widget
   , Padding(..)
@@ -29,12 +27,17 @@ import Brick.Types
 import Brick.Widgets.Core
   ( (<=>)
   , (<+>)
-  , padLeft
+  , withAttr
+  , vLimit
+  , hLimit
+  , hBox
+  , updateAttrMap
+  , withBorderStyle
+  , txt
+  , str
   )
-import Brick.Util (on, fg)
-import Brick.Markup (markup, (@?))
 import Brick.AttrMap (attrMap, AttrMap)
-import Data.Text.Markup ((@@))
+import qualified Brick.Widgets.Core as C
 
 data State = String
 data Event = Event
@@ -63,14 +66,23 @@ main = defaultMain app ()
 
 -- drawUI :: String -> [Widget String]
 drawUI :: () -> [Widget a]
-drawUI _ =  [C.vCenter $ vLimit 25 $ hLimit 150 $ B.borderWithLabel label $ (drawMenu)]
-            where label = str "FFP Musik-Player"
-
+-- drawUI _ = [withBorderStyle BS.unicode $ C.hCenter $ hLimit 100 $ vLimit 200 $ str("ABC")] 
+-- [ui] where ui = C.hCenter $ vLimit 15 $ hLimit 150 $ B.borderWithLabel (str "Label") $ drawMenu
+drawUI _ =  [C.center $ drawMain]
 
 --theMap = undefined
 
-drawIcon = withBorderStyle BS.unicodeBold $ B.border $ str "Icon"
-drawMenu = vBox [ drawPlay, padTop (Pad 1) $ drawStop, padTop (Pad 1) $ drawPause]
+-- drawMenu = vBox [ drawPlay, padTop (Pad 1) $ drawStop, padTop (Pad 1) $ drawPause]
+drawMain = vLimit 100 $ vBox [drawMusic <=> B.hBorder <=> drawFunction <=> drawSearch]
+
+drawMusic :: Widget a
+drawMusic= vBox [  drawIcon, padLeft (Pad 20) $ str"Title", padLeft (Pad 20) $ str"Song", padLeft (Pad 20) $ str"Artist", padLeft (Pad 20) $ str"Review"]
+  -- withBorderStyle (hSize) BS.unicodeBold $ B.borderWithLabel (str "FFP-Music-Player") $ C.hCenter $ padAll 1 $ str("")
+
+drawIcon::Widget a
+drawIcon = C.withBorderStyle BS.unicodeBold $ B.vBorder
+
+drawFunction = hLimit 50 $ drawPrevious
 
 drawPlay = str "Play"
 
@@ -78,10 +90,13 @@ drawStop = str "Stop"
 
 drawPause = str "Pause"
 
+drawNext = str "Next"
+
+drawPrevious = str "Previous"
+
+drawSearch = str "Search"
 -- appHandleEvent :: s -> BrickEvent n e -> EventM n (Next s)
 -- handleEvent :: Song -> BrickEvent Name e -> EventM Name (Next Song)
 -- handleEvent s (VtyEvent ev) = case ev of
 --   V.EvKey ()
-handleEvent =undefined
-action :: Song -> Song
-action s = s
+handleEvent = undefined
