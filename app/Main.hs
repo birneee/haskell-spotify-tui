@@ -1,5 +1,8 @@
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE TemplateHaskell #-}
 module Main where
-import qualified Graphics.Vty as V
 
 import Brick
   (App(..), AttrMap, BrickEvent(..), EventM, Next, Widget
@@ -15,6 +18,7 @@ import Brick
   ,resizeOrQuit
   ,attrName
   )
+
 import qualified Brick.Widgets.Center as C
 import qualified Brick.Widgets.Border as B
 import qualified Brick.Widgets.Border.Style as BS
@@ -36,15 +40,46 @@ import Brick.Widgets.Core
   , txt
   , str
   )
+  
+import qualified Brick.Widgets.Edit as E
 import Brick.AttrMap (attrMap, AttrMap)
 import qualified Brick.Widgets.Core as C
+import Brick.Types (Extent)
+import Brick.Types (Location)
 
 data State = String
 data Event = Event
 data Tick = Tick
-type Name = ()
-data Song = Song {title::String, length::Double, playing::Bool, inList:: Bool} deriving Show
--- song1 = Song { "123",100, False, False }
+-- type Name = ()
+
+data Name = Info | Button1 | Button2 | Button3 | Prose | TextBox
+          deriving (Show, Ord, Eq)
+
+data St =
+    St { _clicked :: [Extent Name]
+       , _lastReportedClick :: Maybe (Name, Location)
+       , _prose :: String
+       , _edit :: E.Editor String Name
+       }
+
+-- State
+-- data AppState = AppState {
+--     _accessToken :: Maybe AccessToken,
+--     _isPlaying   :: Bool
+-- } deriving(Show, Eq)
+
+-- $(makeLenses ''AppState)
+
+-- newAppState :: AppState
+-- newAppState = AppState {
+--     _accessToken = Nothing,
+--     _isPlaying = False
+-- }
+
+-- type AppStateT = StateT AppState
+-- type AppStateM a = forall m. (Monad m) => AppStateT m a
+-- type AppStateIO a = AppStateT IO a
+
 
 theMap :: AttrMap
 theMap = attrMap V.defAttr
@@ -66,23 +101,23 @@ main = defaultMain app ()
 
 -- drawUI :: String -> [Widget String]
 drawUI :: () -> [Widget a]
--- drawUI _ = [withBorderStyle BS.unicode $ C.hCenter $ hLimit 100 $ vLimit 200 $ str("ABC")] 
--- [ui] where ui = C.hCenter $ vLimit 15 $ hLimit 150 $ B.borderWithLabel (str "Label") $ drawMenu
 drawUI _ =  [C.center $ drawMain]
 
 --theMap = undefined
 
 -- drawMenu = vBox [ drawPlay, padTop (Pad 1) $ drawStop, padTop (Pad 1) $ drawPause]
-drawMain = vLimit 100 $ vBox [drawMusic <=> B.hBorder <=> drawFunction <=> drawSearch]
+
+drawMain = vLimit 100 $ vBox [drawMusic <=> B.hBorder <=> C.center (drawFunction)]
 
 drawMusic :: Widget a
-drawMusic= vBox [  drawIcon, padLeft (Pad 20) $ str"Title", padLeft (Pad 20) $ str"Song", padLeft (Pad 20) $ str"Artist", padLeft (Pad 20) $ str"Review"]
-  -- withBorderStyle (hSize) BS.unicodeBold $ B.borderWithLabel (str "FFP-Music-Player") $ C.hCenter $ padAll 1 $ str("")
+drawMusic = withBorderStyle BS.unicode $ B.borderWithLabel (str "FFP Music Player") $ (C.center drawIcon <+> B.vBorder <+> drawInfo)
+
+drawInfo = vBox [  C.center (str"Title"),  C.center (str"Song"),  C.center(str"Artist"), C.center(str"Review")]
 
 drawIcon::Widget a
-drawIcon = C.withBorderStyle BS.unicodeBold $ B.vBorder
+drawIcon = C.withBorderStyle BS.unicodeBold $ B.borderWithLabel (str "Album") (str "")
 
-drawFunction = hLimit 50 $ drawPrevious
+drawFunction = padRight (Pad 2) drawPrevious <+> padRight (Pad 2) drawPause <+> padRight (Pad 2) drawPlay <+> padRight (Pad 2) drawNext
 
 drawPlay = str "Play"
 
@@ -94,9 +129,7 @@ drawNext = str "Next"
 
 drawPrevious = str "Previous"
 
-drawSearch = str "Search"
--- appHandleEvent :: s -> BrickEvent n e -> EventM n (Next s)
--- handleEvent :: Song -> BrickEvent Name e -> EventM Name (Next Song)
--- handleEvent s (VtyEvent ev) = case ev of
---   V.EvKey ()
+-- drawSearch :: St -> Widget a
+-- drawSearch st = C.hCenterLayer ( vLimit 3 $ hLimit 50 $ E.renderEditor  (str . unlines) True (st^_edit))
+
 handleEvent = undefined
