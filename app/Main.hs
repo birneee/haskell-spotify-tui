@@ -3,7 +3,7 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE TemplateHaskell #-}
 module Main where
-
+import Data.Char
 import Brick
   (App(..), AttrMap, BrickEvent(..), EventM, Next, Widget
   , customMain, neverShowCursor
@@ -103,10 +103,6 @@ main = defaultMain app ()
 drawUI :: () -> [Widget a]
 drawUI _ =  [C.center $ drawMain]
 
---theMap = undefined
-
--- drawMenu = vBox [ drawPlay, padTop (Pad 1) $ drawStop, padTop (Pad 1) $ drawPause]
-
 drawMain = vLimit 100 $ vBox [drawMusic <=> B.hBorder <=> C.center (drawFunction)]
 
 drawMusic :: Widget a
@@ -119,15 +115,17 @@ drawIcon = C.withBorderStyle BS.unicodeBold $ B.borderWithLabel (str "Album") (s
 
 drawFunction = padRight (Pad 2) drawPrevious <+> padRight (Pad 2) drawPause <+> padRight (Pad 2) drawPlay <+> padRight (Pad 2) drawNext
 
-drawPlay = str "Play"
+drawPlay = str $ [chr 9654]
 
-drawStop = str "Stop"
+encode s = map (\c -> toSmiley c) s
 
-drawPause = str "Pause"
+toSmiley c = chr . (+128415) $ ord c
 
-drawNext = str "Next"
+drawPause = str $ [chr 9208]
 
-drawPrevious = str "Previous"
+drawNext = str $ [chr 9193]
+
+drawPrevious = str $ [chr 9198]
 
 -- drawSearch :: St -> Widget a
 -- drawSearch st = C.hCenterLayer ( vLimit 3 $ hLimit 50 $ E.renderEditor  (str . unlines) True (st^_edit))
