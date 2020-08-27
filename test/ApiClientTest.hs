@@ -75,8 +75,10 @@ testPlayTrack uri = do
 
 -- helper
 
+
 accessToken :: IO AccessToken
 -- |Get AccessToken by cached RefreshToken in file "refresh_token.tmp"
+-- |TODO load from persistent json/yaml file
 accessToken = do
   let filePath = "refresh_token.tmp"
   appendFile filePath ""
