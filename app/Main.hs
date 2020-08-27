@@ -3,7 +3,9 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE TemplateHaskell #-}
 module Main where
+
 import Data.Char
+import Control.Lens
 import Brick
   (App(..), AttrMap, BrickEvent(..), EventM, Next, Widget
   , customMain, neverShowCursor
@@ -62,24 +64,20 @@ data St =
        , _edit :: E.Editor String Name
        }
 
+
 -- State
--- data AppState = AppState {
---     _accessToken :: Maybe AccessToken,
---     _isPlaying   :: Bool
--- } deriving(Show, Eq)
+data AppState = AppState {
+    -- _accessToken :: Maybe AccessToken,
+    _isPlaying   :: Bool
+} deriving(Show, Eq)
 
--- $(makeLenses ''AppState)
+$(makeLenses ''AppState)
 
--- newAppState :: AppState
--- newAppState = AppState {
---     _accessToken = Nothing,
---     _isPlaying = False
--- }
-
--- type AppStateT = StateT AppState
--- type AppStateM a = forall m. (Monad m) => AppStateT m a
--- type AppStateIO a = AppStateT IO a
-
+newAppState :: AppState
+newAppState = AppState {
+    -- _accessToken = Nothing,
+    _isPlaying = False
+}
 
 theMap :: AttrMap
 theMap = attrMap V.defAttr
@@ -88,7 +86,7 @@ theMap = attrMap V.defAttr
     ]
 
 -- app :: App State Event Name
-app :: App () e Name
+app :: App AppState Tick Name
 app = App { appDraw = drawUI --appDraw = drawUI
           , appChooseCursor = M.showFirstCursor
           , appHandleEvent = handleEvent
@@ -96,12 +94,12 @@ app = App { appDraw = drawUI --appDraw = drawUI
           , appAttrMap = const theMap
           }
 
-main :: IO ()
-main = defaultMain app ()
+main :: IO AppState
+main = defaultMain app newAppState
 
 -- drawUI :: String -> [Widget String]
-drawUI :: () -> [Widget a]
-drawUI _ =  [C.center $ drawMain]
+drawUI :: AppState -> [Widget Name]
+drawUI a =  [C.center $ drawMain]
 
 drawMain = vLimit 100 $ vBox [drawMusic <=> B.hBorder <=> C.center (drawFunction)]
 
@@ -130,4 +128,8 @@ drawPrevious = str $ [chr 9198]
 -- drawSearch :: St -> Widget a
 -- drawSearch st = C.hCenterLayer ( vLimit 3 $ hLimit 50 $ E.renderEditor  (str . unlines) True (st^_edit))
 
-handleEvent = undefined
+handleEvent :: AppState -> BrickEvent Name Tick -> EventM Name (Next AppState)
+handleEvent a (AppEvent Tick) = continue $ step a
+handleEvent a (VtyEvent (V.EvKey (V.KChar 'p') [])) = continue $ step a 
+
+step a = AppState{_isPlaying = False}
