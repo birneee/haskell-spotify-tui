@@ -52,18 +52,14 @@ import Brick.Types (Location)
 data State = String
 data Event = Event
 data Tick = Tick
--- type Name = ()
+type Name = ()
 
-data Name = Info | Button1 | Button2 | Button3 | Prose | TextBox
+data Name1 = TextBox
           deriving (Show, Ord, Eq)
-
+-- Editor
 data St =
-    St { _clicked :: [Extent Name]
-       , _lastReportedClick :: Maybe (Name, Location)
-       , _prose :: String
-       , _edit :: E.Editor String Name
+    St {_edit :: E.Editor String Name1
        }
-
 
 -- State
 data AppState = AppState {
@@ -87,7 +83,7 @@ theMap = attrMap V.defAttr
 
 -- app :: App State Event Name
 app :: App AppState Tick Name
-app = App { appDraw = drawUI --appDraw = drawUI
+app = App { appDraw = drawUI 
           , appChooseCursor = M.showFirstCursor
           , appHandleEvent = handleEvent
           , appStartEvent = return
@@ -97,7 +93,6 @@ app = App { appDraw = drawUI --appDraw = drawUI
 main :: IO AppState
 main = defaultMain app newAppState
 
--- drawUI :: String -> [Widget String]
 drawUI :: AppState -> [Widget Name]
 drawUI a =  [C.center $ drawMain]
 
