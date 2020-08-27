@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE RankNTypes #-}
@@ -26,6 +27,8 @@ import qualified Brick.Widgets.Border as B
 import qualified Brick.Widgets.Border.Style as BS
 import qualified Brick.Main as M
 import qualified Graphics.Vty as V
+import Brick.AttrMap (AttrMap, AttrName, attrMap)
+
 import Brick.Types
   ( Widget
   , Padding(..)
@@ -41,10 +44,10 @@ import Brick.Widgets.Core
   , withBorderStyle
   , txt
   , str
+  , visible
   )
   
 import qualified Brick.Widgets.Edit as E
-import Brick.AttrMap (attrMap, AttrMap)
 import qualified Brick.Widgets.Core as C
 import Brick.Types (Extent)
 import Brick.Types (Location)
@@ -77,11 +80,18 @@ newAppState = AppState {
 
 theMap :: AttrMap
 theMap = attrMap V.defAttr
-    [ (attrName "keyword1",      fg V.magenta)
-    , (attrName "keyword2",      V.white `on` V.blue)
+    [ (playAttr,      V.white `on` V.green),
+    (stopAttr,      V.white `on` V.red),
+    (nextAttr,      V.white `on` V.blue),
+    (previousAttr,      V.white `on` V.cyan)
     ]
 
--- app :: App State Event Name
+playAttr, stopAttr, nextAttr, previousAttr :: AttrName
+playAttr = "playAttr"
+stopAttr = "stopAttr"
+nextAttr = "nextAttr"
+previousAttr = "previousAttr"
+
 app :: App AppState Tick Name
 app = App { appDraw = drawUI 
           , appChooseCursor = M.showFirstCursor
@@ -96,7 +106,7 @@ main = defaultMain app newAppState
 drawUI :: AppState -> [Widget Name]
 drawUI a =  [C.center $ drawMain]
 
-drawMain = vLimit 100 $ vBox [drawMusic <=> B.hBorder <=> C.center (drawFunction)]
+drawMain = vLimit 100 $ vBox [drawMusic  <=> C.center (drawFunction), str $ "'p':PLAY, 's':STOP, 'p':BACK, 'n':NEXT"]
 
 drawMusic :: Widget a
 drawMusic = withBorderStyle BS.unicode $ B.borderWithLabel (str "FFP Music Player") $ (C.center drawIcon <+> B.vBorder <+> drawInfo)
@@ -106,25 +116,26 @@ drawInfo = vBox [  C.center (str"Title"),  C.center (str"Song"),  C.center(str"A
 drawIcon::Widget a
 drawIcon = C.withBorderStyle BS.unicodeBold $ B.borderWithLabel (str "Album") (str "")
 
-drawFunction = padRight (Pad 2) drawPrevious <+> padRight (Pad 2) drawPause <+> padRight (Pad 2) drawPlay <+> padRight (Pad 2) drawNext
+drawFunction = padRight (Pad 2) drawPrevious <+> padRight (Pad 2) drawStop <+> padRight (Pad 2) drawPlay <+> padRight (Pad 2) drawNext
+-- padRight (Pad 2) drawPrevious <+> padRight (Pad 2) drawPause <+> padRight (Pad 2) withAttr $ playAttr . visible  <+> padRight (Pad 2) drawNext
 
-drawPlay = str $ [chr 9654]
+drawPlay = withAttr playAttr $ str "Play"
 
-encode s = map (\c -> toSmiley c) s
+drawStop = withAttr stopAttr $ str "Stop"
 
-toSmiley c = chr . (+128415) $ ord c
+drawNext = withAttr nextAttr $ str "Next"
 
-drawPause = str $ [chr 9208]
-
-drawNext = str $ [chr 9193]
-
-drawPrevious = str $ [chr 9198]
+drawPrevious = withAttr previousAttr $ str "Previous"
 
 -- drawSearch :: St -> Widget a
 -- drawSearch st = C.hCenterLayer ( vLimit 3 $ hLimit 50 $ E.renderEditor  (str . unlines) True (st^_edit))
 
 handleEvent :: AppState -> BrickEvent Name Tick -> EventM Name (Next AppState)
-handleEvent a (AppEvent Tick) = continue $ step a
 handleEvent a (VtyEvent (V.EvKey (V.KChar 'p') [])) = continue $ step a 
+handleEvent a (VtyEvent (V.EvKey (V.KChar 's') [])) = continue $ step a 
+handleEvent a (VtyEvent (V.EvKey (V.KChar 'p') [])) = continue $ step a 
+handleEvent a (VtyEvent (V.EvKey (V.KChar 'n') [])) = continue $ step a 
+-- handleEvent a _ = continue $ step a
 
-step a = AppState{_isPlaying = False}
+step :: AppState -> AppState
+step a = a
