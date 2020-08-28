@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.33.0.
+-- This file has been generated from package.yaml by hpack version 0.31.2.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: ae2c883b79a427120be31e6d5071ae29da8c594d6ac5d423cde478d31f712f38
+-- hash: bf456182085ee1b077da8d4c523ea0d991009f52e9871313b92accbf7e8b59d8
 
 name:           FFP-Project
 version:        0.1.0.0
@@ -41,6 +41,7 @@ library
       ApiObjects.Track
       AppState
       Authenticator
+      Controller
       Utils.HttpUtils
       Utils.ImageAnsiTerminalUtils
       Utils.LensUtils
@@ -57,19 +58,19 @@ library
     , JuicyPixels-extra
     , aeson
     , base >=4.7 && <5
+    , brick
     , bytestring
     , http-client
     , http-client-tls
     , http-types
     , lens
+    , microlens
     , open-browser
     , relude
     , transformers
+    , vty
     , wai
     , warp
-    , brick
-    , microlens
-    , vty
   default-language: Haskell2010
 
 executable haskell-spotify-tui
@@ -85,19 +86,19 @@ executable haskell-spotify-tui
     , JuicyPixels-extra
     , aeson
     , base >=4.7 && <5
+    , brick
     , bytestring
     , http-client
     , http-client-tls
     , http-types
     , lens
+    , microlens
     , open-browser
     , relude
     , transformers
+    , vty
     , wai
     , warp
-    , brick
-    , microlens
-    , vty
   default-language: Haskell2010
 
 test-suite FFP-Project-test
@@ -117,14 +118,17 @@ test-suite FFP-Project-test
     , JuicyPixels-extra
     , aeson
     , base >=4.7 && <5
+    , brick
     , bytestring
     , http-client
     , http-client-tls
     , http-types
     , lens
+    , microlens
     , open-browser
     , relude
     , transformers
+    , vty
     , wai
     , warp
   default-language: Haskell2010

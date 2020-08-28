@@ -3,8 +3,11 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE TemplateHaskell #-}
+
 module Main where
 
+import qualified Controller as CONTROLLER (play)
+import AppState (AppState, execAppStateIO, newAppState)
 import Data.Char
 import Control.Lens
 import Brick
@@ -51,6 +54,7 @@ import qualified Brick.Widgets.Edit as E
 import qualified Brick.Widgets.Core as C
 import Brick.Types (Extent)
 import Brick.Types (Location)
+import Control.Monad.IO.Class (MonadIO(liftIO))
 
 data State = String
 data Event = Event
@@ -65,18 +69,18 @@ data St =
        }
 
 -- State
-data AppState = AppState {
-    -- _accessToken :: Maybe AccessToken,
-    _isPlaying   :: Bool
-} deriving(Show, Eq)
+-- data AppState = AppState {
+--     -- _accessToken :: Maybe AccessToken,
+--     _isPlaying   :: Bool
+-- } deriving(Show, Eq)
 
-$(makeLenses ''AppState)
+-- $(makeLenses ''AppState)
 
-newAppState :: AppState
-newAppState = AppState {
-    -- _accessToken = Nothing,
-    _isPlaying = False
-}
+-- newAppState :: AppState
+-- newAppState = AppState {
+--     -- _accessToken = Nothing,
+--     _isPlaying = False
+-- }
 
 theMap :: AttrMap
 theMap = attrMap V.defAttr
@@ -101,7 +105,9 @@ app = App { appDraw = drawUI
           }
 
 main :: IO AppState
-main = defaultMain app newAppState
+main = do
+       defaultMain app newAppState
+      
 
 drawUI :: AppState -> [Widget Name]
 drawUI a =  [C.center $ drawMain]
@@ -131,11 +137,21 @@ drawPrevious = withAttr previousAttr $ str "Previous"
 -- drawSearch st = C.hCenterLayer ( vLimit 3 $ hLimit 50 $ E.renderEditor  (str . unlines) True (st^_edit))
 
 handleEvent :: AppState -> BrickEvent Name Tick -> EventM Name (Next AppState)
-handleEvent a (VtyEvent (V.EvKey (V.KChar 'p') [])) = continue $ step a 
-handleEvent a (VtyEvent (V.EvKey (V.KChar 's') [])) = continue $ step a 
-handleEvent a (VtyEvent (V.EvKey (V.KChar 'p') [])) = continue $ step a 
-handleEvent a (VtyEvent (V.EvKey (V.KChar 'n') [])) = continue $ step a 
+handleEvent a (VtyEvent (V.EvKey (V.KChar 'p') [])) = play a 
+-- handleEvent a (VtyEvent (V.EvKey (V.KChar 's') [])) = continue $ step a 
+-- handleEvent a (VtyEvent (V.EvKey (V.KChar 'p') [])) = continue $ step a 
+-- handleEvent a (VtyEvent (V.EvKey (V.KChar 'n') [])) = continue $ step a 
 -- handleEvent a _ = continue $ step a
 
-step :: AppState -> AppState
-step a = a
+-- step :: AppState -> AppState
+-- step a = a {_isPlaying = True}
+
+play :: AppState -> EventM Name (Next AppState)
+play a = do 
+         a' <- liftIO $ execAppStateIO CONTROLLER.play a 
+        --  let old = a ^. isPlaying
+         liftIO $ putStrLn $ show a' 
+         continue a'
+
+          
+-- exec :: AppState ->  EventM Name (Next AppState)
