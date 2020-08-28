@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: ff4459ffa358f4594eac99fc16722858dc4b1f6a8d683c211570adb2ba5036b6
+-- hash: ae2c883b79a427120be31e6d5071ae29da8c594d6ac5d423cde478d31f712f38
 
 name:           FFP-Project
 version:        0.1.0.0
@@ -28,44 +28,33 @@ source-repository head
 library
   exposed-modules:
       ApiClient
+      ApiObjects.AccessToken
+      ApiObjects.AccessTokenResponse
+      ApiObjects.AuthorizationCode
+      ApiObjects.CurrentlyPlayingResponse
+      ApiObjects.Device
+      ApiObjects.DevicesResponse
+      ApiObjects.PlayerResponse
+      ApiObjects.RefreshToken
+      ApiObjects.RefreshTokenResponse
+      ApiObjects.SearchResponse
+      ApiObjects.Track
+      AppState
       Authenticator
-      Lib
-      Objects.AccessToken
-      Objects.AccessTokenResponse
-      Objects.AuthorizationCode
-      Objects.RefreshToken
-      Objects.RefreshTokenResponse
       Utils.HttpUtils
+      Utils.ImageAnsiTerminalUtils
+      Utils.LensUtils
+      Utils.ListLenses
+      Utils.RequestLenses
+      Utils.ResponseLenses
       Utils.StringUtils
   other-modules:
       Paths_FFP_Project
   hs-source-dirs:
       src
   build-depends:
-      aeson
-    , base >=4.7 && <5
-    , bytestring
-    , http-client
-    , http-client-tls
-    , http-types
-    , lens
-    , open-browser
-    , wai
-    , warp
-    , brick
-    , microlens
-    , vty
-  default-language: Haskell2010
-
-executable FFP-Project-exe
-  main-is: Main.hs
-  other-modules:
-      Paths_FFP_Project
-  hs-source-dirs:
-      app
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N
-  build-depends:
-      FFP-Project
+      JuicyPixels
+    , JuicyPixels-extra
     , aeson
     , base >=4.7 && <5
     , bytestring
@@ -74,6 +63,36 @@ executable FFP-Project-exe
     , http-types
     , lens
     , open-browser
+    , relude
+    , transformers
+    , wai
+    , warp
+    , brick
+    , microlens
+    , vty
+  default-language: Haskell2010
+
+executable haskell-spotify-tui
+  main-is: Main.hs
+  other-modules:
+      Paths_FFP_Project
+  hs-source-dirs:
+      app
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      FFP-Project
+    , JuicyPixels
+    , JuicyPixels-extra
+    , aeson
+    , base >=4.7 && <5
+    , bytestring
+    , http-client
+    , http-client-tls
+    , http-types
+    , lens
+    , open-browser
+    , relude
+    , transformers
     , wai
     , warp
     , brick
@@ -85,12 +104,17 @@ test-suite FFP-Project-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      ApiClientTest
+      AuthenticatorTest
+      ImageAnsiTerminalUtilsTest
       Paths_FFP_Project
   hs-source-dirs:
       test
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       FFP-Project
+    , JuicyPixels
+    , JuicyPixels-extra
     , aeson
     , base >=4.7 && <5
     , bytestring
@@ -99,6 +123,8 @@ test-suite FFP-Project-test
     , http-types
     , lens
     , open-browser
+    , relude
+    , transformers
     , wai
     , warp
   default-language: Haskell2010
