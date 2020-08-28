@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 250e3bcf51e6c63a3b865c389c5b06a813863ebb88996c7cefa4a4a819376023
+-- hash: 3eea286f5a352f3366ea6b2aed092d9775f7c20928986bfc003e5e1b34335b59
 
 name:           FFP-Project
 version:        0.1.0.0
@@ -30,10 +30,13 @@ library
       ApiClient
       ApiObjects.AccessToken
       ApiObjects.AccessTokenResponse
+      ApiObjects.Album
+      ApiObjects.Artist
       ApiObjects.AuthorizationCode
       ApiObjects.CurrentlyPlayingResponse
       ApiObjects.Device
       ApiObjects.DevicesResponse
+      ApiObjects.Image
       ApiObjects.PlayerResponse
       ApiObjects.RefreshToken
       ApiObjects.RefreshTokenResponse
@@ -47,6 +50,7 @@ library
       Utils.ImageAnsiTerminalUtils
       Utils.LensUtils
       Utils.ListLenses
+      Utils.Parser
       Utils.RequestLenses
       Utils.ResponseLenses
       Utils.StatusLenses

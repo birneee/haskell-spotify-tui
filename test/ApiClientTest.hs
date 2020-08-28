@@ -1,15 +1,20 @@
 module ApiClientTest where
 
-import           ApiClient                           (searchTrack, playTrack, setPlayer, getAvailableDevices,
+import           ApiClient                           (getAvailableDevices,
                                                       getCurrentAlbumCover,
                                                       getCurrentlyPlaying,
                                                       getPlayer, next, pause,
-                                                      play, previous, setVolume)
+                                                      play, playTrack,
+                                                      playTrackOnDevice,
+                                                      previous, searchTrack,
+                                                      setPlayer, setVolume)
 import           ApiObjects.AccessToken              (AccessToken)
 import           ApiObjects.CurrentlyPlayingResponse (CurrentlyPlayingResponse)
+import           ApiObjects.Device                   (DeviceId)
 import           ApiObjects.DevicesResponse          (DevicesResponse)
 import           ApiObjects.PlayerResponse           (PlayerResponse)
 import           ApiObjects.SearchResponse           (SearchResponse)
+import           ApiObjects.Track                    (Uri)
 import           Authenticator                       (getAccessToken,
                                                       getAuthorizationCode,
                                                       getRefreshToken)
@@ -53,7 +58,7 @@ testGetPlayer :: IO (Status, Maybe PlayerResponse)
 testGetPlayer = do
   accessToken >>= getPlayer
 
-testSetPlayer :: String -> IO Status
+testSetPlayer :: DeviceId -> IO Status
 testSetPlayer deviceId = do
   at <- accessToken
   setPlayer at deviceId
@@ -63,15 +68,20 @@ testSetVolume volumePercent = do
   at <- accessToken
   setVolume at volumePercent
 
-testSearchTrack :: String -> IO (Status, Maybe SearchResponse)
+testSearchTrack :: Uri -> IO (Status, Maybe SearchResponse)
 testSearchTrack query = do
   at <- accessToken
   searchTrack at query
 
-testPlayTrack :: String -> IO Status
+testPlayTrack :: Uri -> IO Status
 testPlayTrack uri = do
   at <- accessToken
   playTrack at uri
+
+testPlayTrackOnDevice :: Uri -> DeviceId -> IO Status
+testPlayTrackOnDevice uri deviceId = do
+  at <- accessToken
+  playTrackOnDevice at uri deviceId
 
 -- helper
 
