@@ -1,4 +1,6 @@
 module Main where
 
+import           CLI (cliMain)
+
 main :: IO ()
-main = putStrLn "hello"
+main = cliMain

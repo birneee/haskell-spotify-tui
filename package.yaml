@@ -30,6 +30,7 @@ dependencies:
 - JuicyPixels-extra
 - lens
 - open-browser
+- raw-strings-qq
 - relude
 - transformers
 - wai

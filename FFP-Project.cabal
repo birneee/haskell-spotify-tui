@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: ae2c883b79a427120be31e6d5071ae29da8c594d6ac5d423cde478d31f712f38
+-- hash: 250e3bcf51e6c63a3b865c389c5b06a813863ebb88996c7cefa4a4a819376023
 
 name:           FFP-Project
 version:        0.1.0.0
@@ -41,12 +41,15 @@ library
       ApiObjects.Track
       AppState
       Authenticator
+      CLI
+      Persistence
       Utils.HttpUtils
       Utils.ImageAnsiTerminalUtils
       Utils.LensUtils
       Utils.ListLenses
       Utils.RequestLenses
       Utils.ResponseLenses
+      Utils.StatusLenses
       Utils.StringUtils
   other-modules:
       Paths_FFP_Project
@@ -63,6 +66,7 @@ library
     , http-types
     , lens
     , open-browser
+    , raw-strings-qq
     , relude
     , transformers
     , wai
@@ -88,6 +92,7 @@ executable haskell-spotify-tui
     , http-types
     , lens
     , open-browser
+    , raw-strings-qq
     , relude
     , transformers
     , wai
@@ -117,6 +122,7 @@ test-suite FFP-Project-test
     , http-types
     , lens
     , open-browser
+    , raw-strings-qq
     , relude
     , transformers
     , wai
