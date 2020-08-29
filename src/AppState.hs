@@ -18,12 +18,6 @@ data AppState = AppState {
 
 $(makeLenses ''AppState)
 
-newAppState :: AppState
-newAppState = AppState {
-    _accessToken = Nothing,
-    _isPlaying = False
-}
-
 type AppStateT = StateT AppState
 type AppStateM a = forall m. (Monad m) => AppStateT m a
 type AppStateIO a = AppStateT IO a
@@ -39,29 +33,3 @@ evalAppStateIO m = evalStateT m
 
 execAppStateIO :: AppStateIO a -> AppState -> IO AppState
 execAppStateIO m = execStateT m
-
--- example
-
-togglePlay :: AppStateM ()
-togglePlay = modifying isPlaying not
-
-pause :: AppStateM ()
-pause = assign isPlaying False
-
-getIsPlaying :: AppStateM Bool
-getIsPlaying = use isPlaying
-
--- test
-
-execTest :: IO ()
-execTest = void $ execAppStateIO test newAppState
-
-test :: AppStateIO ()
-test = do
-    get >>= liftIO . print
-    liftIO $ print "toggle play"
-    togglePlay
-    get >>= liftIO . print
-    liftIO $ print "toggle play"
-    togglePlay
-    get >>= liftIO . print
