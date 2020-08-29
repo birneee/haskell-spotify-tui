@@ -4,7 +4,7 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module Tui.Tui (app, drawMain, theMap, playAttr, stopAttr, nextAttr, previousAttr) where
+module TUI (tuiMain) where
 
 import qualified Controller as CONTROLLER (play)
 import AppState (AppState, execAppStateIO, newAppState)
@@ -55,6 +55,7 @@ import qualified Brick.Widgets.Core as C
 import Brick.Types (Extent)
 import Brick.Types (Location)
 import Control.Monad.IO.Class (MonadIO(liftIO))
+import Control.Monad (void)
 
 data State = String
 data Event = Event
@@ -90,9 +91,8 @@ app = App { appDraw = drawUI
           , appAttrMap = const theMap
           }
 
--- main :: IO AppState
--- main = do
---        defaultMain app newAppState
+tuiMain :: IO ()
+tuiMain = void $ defaultMain app newAppState
       
 
 drawUI :: AppState -> [Widget Name]
