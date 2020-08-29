@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: bf456182085ee1b077da8d4c523ea0d991009f52e9871313b92accbf7e8b59d8
+-- hash: 5e304e01ec0236da76ac0f99cf26f9a354e9fb85fc233fc3cfa382ec83e1828f
 
 name:           FFP-Project
 version:        0.1.0.0
@@ -42,6 +42,7 @@ library
       AppState
       Authenticator
       Controller
+      Tui.Tui
       Utils.HttpUtils
       Utils.ImageAnsiTerminalUtils
       Utils.LensUtils
