@@ -7,11 +7,15 @@ import           Control.Lens     (makeLenses)
 import           Data.Aeson       (FromJSON, parseJSON, (.:))
 import           Data.Aeson.Types (Value (Object))
 
+type DeviceId = String
+type DeviceType = String
+
+-- |source https://developer.spotify.com/documentation/web-api/reference/player/get-information-about-the-users-current-playback/#device-object
 data Device = Device
-  {   _id            :: String,
+  {   _deviceId      :: DeviceId,
       _isActive      :: Bool,
-      _name          :: String,
-      _deviceType    :: String,
+      _deviceName    :: String,
+      _deviceType    :: DeviceType,
       _volumePercent :: Int
   } deriving (Show)
 

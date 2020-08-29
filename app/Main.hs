@@ -1,11 +1,6 @@
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE RankNTypes #-}
-{-# LANGUAGE TemplateHaskell #-}
-
 module Main where
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 import qualified Controller as CONTROLLER (play)
@@ -32,3 +27,10 @@ main :: IO AppState
 main = do
        defaultMain app newAppState
 >>>>>>> tui
+=======
+import           CLI (cliMain)
+
+
+main :: IO ()
+main = cliMain
+>>>>>>> e97b46259dfd6aafc17e2579dd6c3aba314411d5
