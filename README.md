@@ -19,3 +19,7 @@ stack build
 stack install
 haskell-spotify-tui
 ```
+
+## Used Libraries
+- [Brick](https://github.com/jtdaugherty/brick) for terminal user interface (TUI)
+- ... TODO

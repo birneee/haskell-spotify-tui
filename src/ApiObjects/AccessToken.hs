@@ -7,7 +7,7 @@ import           Network.HTTP.Types.Header (Header)
 import           Utils.StringUtils
 
 newtype AccessToken = AccessToken String
-  deriving (Show)
+  deriving (Show, Eq)
 
 instance IsString AccessToken where
   fromString s = pack s

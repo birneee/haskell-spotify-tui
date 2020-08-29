@@ -3,7 +3,8 @@ module ApiObjects.RefreshToken where
 import           GHC.Exts          (IsString (..))
 import           Utils.StringUtils
 
-newtype RefreshToken = RefreshToken String deriving (Show)
+newtype RefreshToken = RefreshToken String
+    deriving (Show, Eq)
 
 instance IsString RefreshToken where
     fromString s = pack s
