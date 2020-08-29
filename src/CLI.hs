@@ -21,6 +21,7 @@ import           Persistence                (loadAccessToken)
 import           System.Environment         (getArgs)
 import           System.Exit                (die, exitSuccess)
 import           Text.Read                  (readMaybe)
+import           TUI                        (tuiMain)
 import           Utils.LensUtils            ((?^.))
 import           Utils.Parser               (Parser, endParser, hexStringParser,
                                              intParser, nonWhiteSpaceParser,
@@ -152,9 +153,9 @@ invalidOptions = do
         "invalid option '" ++ (intercalate " " options) ++ "'\n\
         \Try 'haskell-spotify-tui --help' for more information."
 
-tui :: IO()
+tui :: IO ()
 -- |TODO launch tui
-tui = undefined
+tui = tuiMain
 
 help :: IO ()
 help = putStrLn usageText

@@ -1,20 +1,12 @@
+{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE RankNTypes #-}
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE RankNTypes        #-}
+{-# LANGUAGE TemplateHaskell   #-}
 
 module Main where
 
-import qualified Controller as CONTROLLER (play)
-import Tui.Tui as TUI (app, playAttr, stopAttr, nextAttr, previousAttr)
-import AppState (AppState, execAppStateIO, newAppState)
+import           CLI (cliMain)
 
-import Brick
-  (App(..), AttrMap, BrickEvent(..), EventM, Next, Widget
-  , defaultMain
-  )
-
-main :: IO AppState
-main = do
-       defaultMain app newAppState
+main :: IO ()
+main = cliMain
