@@ -30,8 +30,8 @@ dependencies:
 - JuicyPixels-extra
 - lens
 - open-browser
-- raw-strings-qq
 - relude
+- template-haskell
 - transformers
 - wai
 - warp

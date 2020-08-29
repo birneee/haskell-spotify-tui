@@ -20,13 +20,13 @@ import           Data.List                  (intercalate)
 import           Persistence                (loadAccessToken)
 import           System.Environment         (getArgs)
 import           System.Exit                (die, exitSuccess)
-import           Text.RawString.QQ          (r)
 import           Text.Read                  (readMaybe)
 import           Utils.LensUtils            ((?^.))
 import           Utils.Parser               (Parser, endParser, hexStringParser,
                                              intParser, nonWhiteSpaceParser,
                                              runParser, stringParser,
                                              whiteSpaceParser)
+import           Utils.RawString            (rawString)
 import           Utils.StatusLenses         (code)
 
 cliMain :: IO ()
@@ -160,7 +160,7 @@ help :: IO ()
 help = putStrLn usageText
     where
         usageText :: String
-        usageText = [r|haskell-spitify-tui - TODO description
+        usageText = [rawString|haskell-spitify-tui - TODO description
 
         Usage: haskell-spitify-tui [option]
 
