@@ -9,4 +9,7 @@ play = do assign isPlaying True
 pause :: AppStateIO ()
 pause = do assign isPlaying False
 
+search :: AppStateIO ()
+search = undefined
+
 

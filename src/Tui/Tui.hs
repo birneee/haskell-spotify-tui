@@ -4,7 +4,7 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module Tui.Tui (app, drawMain, theMap, playAttr, stopAttr, nextAttr, previousAttr) where
+module Tui.Tui (app, drawMain, theMap, playAttr, stopAttr, nextAttr, previousAttr, processLine) where
 
 import qualified Controller as CONTROLLER (play, pause)
 import AppState (AppState, execAppStateIO, newAppState)
@@ -124,7 +124,8 @@ drawPrevious = withAttr previousAttr $ str "Previous"
 
 handleEvent :: AppState -> BrickEvent Name Tick -> EventM Name (Next AppState)
 handleEvent a (VtyEvent (V.EvKey (V.KChar 'p') [])) = play a 
-handleEvent a (VtyEvent (V.EvKey (V.KChar 's') [])) = pause a 
+handleEvent a (VtyEvent (V.EvKey (V.KChar 's') [])) = pause a
+handleEvent a (VtyEvent (V.EvKey (V.KChar 'f') [])) = search a
 -- handleEvent a (VtyEvent (V.EvKey (V.KChar 'p') [])) = continue $ step a 
 -- handleEvent a (VtyEvent (V.EvKey (V.KChar 'n') [])) = continue $ step a 
 -- handleEvent a _ = continue $ step a
@@ -143,4 +144,10 @@ pause a = do
           a' <- liftIO $ execAppStateIO CONTROLLER.pause a
           liftIO $ putStrLn $ show a' 
           continue a'
--- exec :: AppState ->  EventM Name (Next AppState)
+search :: AppState-> EventM Name (Next AppState)
+search = undefined
+-- search a = do
+--           n <- liftIO $ putStrLn "Please enter a song name or artist name"
+
+processLine :: String -> AppState
+processLine c = undefined
