@@ -55,7 +55,6 @@ import qualified Brick.Widgets.Core as C
 import Brick.Types (Extent)
 import Brick.Types (Location)
 import Control.Monad.IO.Class (MonadIO(liftIO))
-import Control.Monad (void)
 
 data State = String
 data Event = Event
@@ -130,6 +129,7 @@ handleEvent a (VtyEvent (V.EvKey (V.KChar 'p') [])) = play a
 -- handleEvent a (VtyEvent (V.EvKey (V.KChar 's') [])) = continue $ step a 
 -- handleEvent a (VtyEvent (V.EvKey (V.KChar 'p') [])) = continue $ step a 
 -- handleEvent a (VtyEvent (V.EvKey (V.KChar 'n') [])) = continue $ step a 
+handleEvent a (VtyEvent (V.EvKey (V.KChar 'q') [])) = halt a
 handleEvent a _ = continue a
 
 -- step :: AppState -> AppState

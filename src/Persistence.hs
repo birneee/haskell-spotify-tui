@@ -1,21 +1,25 @@
 module Persistence where
 
-import           ApiObjects.AccessToken (AccessToken)
-import           Authenticator          (getAccessToken, getAuthorizationCode,
-                                         getRefreshToken)
+import           ApiObjects.AccessToken  (AccessToken)
+import           ApiObjects.RefreshToken (RefreshToken)
+import           Authenticator           (getAccessToken, getAuthorizationCode,
+                                          getRefreshToken)
 import           Utils.StringUtils
 
-loadAccessToken :: IO AccessToken
--- |Get AccessToken by cached RefreshToken in file "refresh_token.tmp"
--- |TODO load from persistent json/yaml file
-loadAccessToken = do
+saveRefreshToken :: RefreshToken -> IO ()
+-- |Save refresh token in file
+-- |TODO use config.json file
+saveRefreshToken refreshToken = do
+  let filePath = "refresh_token.tmp"
+  writeFile filePath $ unpack refreshToken
+
+loadRefreshToken :: IO (Maybe RefreshToken)
+-- |Get refresh token from file "refresh_token.tmp"
+-- |TODO load from persistent config.json file
+loadRefreshToken = do
   let filePath = "refresh_token.tmp"
   appendFile filePath ""
   content <- readFile filePath
-  refreshToken <- case (length content) of
-      0 -> do
-        rt <- getAuthorizationCode >>= getRefreshToken
-        writeFile filePath $ unpack rt
-        return rt
-      _ -> return $ pack content
-  getAccessToken refreshToken
+  case (length content) of
+    0 -> return Nothing
+    _ -> return $ Just $ pack content
