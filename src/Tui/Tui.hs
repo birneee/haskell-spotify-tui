@@ -96,7 +96,7 @@ app = App { appDraw = drawUI
       
 
 drawUI :: AppState -> [Widget Name]
-drawUI a =  [C.center $ drawMain]
+drawUI a =  [C.center $ drawMain, drawSearch True]
 
 drawMain = vLimit 100 $ vBox [drawMusic  <=> C.center (drawFunction), str $ "'p':PLAY, 's':STOP, 'p':BACK, 'n':NEXT"]
 
@@ -119,16 +119,19 @@ drawNext = withAttr nextAttr $ str "Next"
 
 drawPrevious = withAttr previousAttr $ str "Previous"
 
+drawSearch :: Bool -> Widget n
+drawSearch b = case b of
+               True -> vLimit 5 $ hBox []
 -- drawSearch :: St -> Widget a
 -- drawSearch st = C.hCenterLayer ( vLimit 3 $ hLimit 50 $ E.renderEditor  (str . unlines) True (st^_edit))
 
 handleEvent :: AppState -> BrickEvent Name Tick -> EventM Name (Next AppState)
 handleEvent a (VtyEvent (V.EvKey (V.KChar 'p') [])) = play a 
 handleEvent a (VtyEvent (V.EvKey (V.KChar 's') [])) = pause a
-handleEvent a (VtyEvent (V.EvKey (V.KChar 'f') [])) = search a
+-- handleEvent a (VtyEvent (V.EvKey (V.KChar 'f') [])) = search a
 -- handleEvent a (VtyEvent (V.EvKey (V.KChar 'p') [])) = continue $ step a 
 -- handleEvent a (VtyEvent (V.EvKey (V.KChar 'n') [])) = continue $ step a 
--- handleEvent a _ = continue $ step a
+handleEvent a _ = continue a
 
 
 -- Frage: AppState ist ein Monad?
@@ -146,10 +149,10 @@ pause a = do
           continue a'
 
 -- Instead of changing AppState, it should start the search function in controller
-search :: AppState-> EventM Name (Next AppState)
-search a = do
-           liftIO $ putStrLn "Please enter a song name or artist name"
-           c <- getLine
-           a'<- execAppStateIO $ CONTROLLER.search c
-           continue a'
+-- search :: AppState-> EventM Name (Next AppState)
+-- search a = do
+--            liftIO $ putStrLn "Please enter a song name or artist name"
+--            c <- getLine
+--            a'<- execAppStateIO $ CONTROLLER.search c
+--            continue a'
            
