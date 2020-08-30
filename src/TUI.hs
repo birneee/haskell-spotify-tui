@@ -6,7 +6,7 @@
 
 module TUI (tuiMain) where
 
-import qualified Controller as CONTROLLER (play, pause)
+import qualified Controller as CONTROLLER (play)
 import AppState (AppState, execAppStateIO, newAppState)
 import Data.Char
 import Control.Lens
@@ -124,13 +124,14 @@ drawPrevious = withAttr previousAttr $ str "Previous"
 
 handleEvent :: AppState -> BrickEvent Name Tick -> EventM Name (Next AppState)
 handleEvent a (VtyEvent (V.EvKey (V.KChar 'p') [])) = play a 
-handleEvent a (VtyEvent (V.EvKey (V.KChar 's') [])) = pause a 
+-- handleEvent a (VtyEvent (V.EvKey (V.KChar 's') [])) = continue $ step a 
 -- handleEvent a (VtyEvent (V.EvKey (V.KChar 'p') [])) = continue $ step a 
 -- handleEvent a (VtyEvent (V.EvKey (V.KChar 'n') [])) = continue $ step a 
 handleEvent a _ = continue a
 
+-- step :: AppState -> AppState
+-- step a = a {_isPlaying = True}
 
--- Frage: AppState ist ein Monad?
 play :: AppState -> EventM Name (Next AppState)
 play a = do 
          a' <- liftIO $ execAppStateIO CONTROLLER.play a 
@@ -138,9 +139,5 @@ play a = do
          liftIO $ putStrLn $ show a' 
          continue a'
 
-pause :: AppState -> EventM Name (Next AppState)
-pause a = do
-          a' <- liftIO $ execAppStateIO CONTROLLER.pause a
-          liftIO $ putStrLn $ show a' 
-          continue a'
+          
 -- exec :: AppState ->  EventM Name (Next AppState)
