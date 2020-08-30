@@ -6,8 +6,8 @@
 
 module TUI (tuiMain) where
 
-import qualified Controller as CONTROLLER (play)
-import AppState (AppState, execAppStateIO, newAppState)
+import qualified Controller as CONTROLLER (play, initAppState)
+import AppState (AppState, execAppStateIO)
 import Data.Char
 import Control.Lens
 import Brick
@@ -92,8 +92,11 @@ app = App { appDraw = drawUI
           }
 
 tuiMain :: IO ()
-tuiMain = void $ defaultMain app newAppState
-      
+tuiMain = do
+  appState <- CONTROLLER.initAppState
+  defaultMain app appState
+  return ()
+  
 
 drawUI :: AppState -> [Widget Name]
 drawUI a =  [C.center $ drawMain]
