@@ -15,8 +15,8 @@ data AppState = AppState {
     _accessToken :: Maybe AccessToken,
     _isPlaying   :: Bool,
     _showSearch  :: Bool,
-    _searchInput :: String,
-    _trackName    :: Maybe String
+    _searchInput :: Maybe String,
+    _trackName   :: Maybe String
 } deriving(Show, Eq)
 
 $(makeLenses ''AppState)
@@ -24,7 +24,10 @@ $(makeLenses ''AppState)
 newAppState :: AppState
 newAppState = AppState {
     _accessToken = Nothing,
-    _isPlaying = False
+    _isPlaying = False,
+    _showSearch = False,
+    _searchInput = Nothing,
+    _trackName = Nothing
 }
 
 type AppStateT = StateT AppState
