@@ -6,7 +6,7 @@
 
 module TUI (tuiMain) where
 
-import qualified Controller as CONTROLLER (play, initAppState)
+import qualified Controller as CONTROLLER ( initAppState, play, search)
 import AppState (AppState, execAppStateIO)
 import Data.Char
 import Control.Lens
@@ -84,7 +84,7 @@ nextAttr = "nextAttr"
 previousAttr = "previousAttr"
 
 app :: App AppState Tick Name
-app = App { appDraw = drawUI 
+app = App { appDraw = drawUI
           , appChooseCursor = M.showFirstCursor
           , appHandleEvent = handleEvent
           , appStartEvent = return
@@ -99,7 +99,7 @@ tuiMain = do
   
 
 drawUI :: AppState -> [Widget Name]
-drawUI a =  [C.center $ drawMain]
+drawUI a =  [C.center $ drawMain, drawSearch True]
 
 drawMain = vLimit 100 $ vBox [drawMusic  <=> C.center (drawFunction), str $ "'p':PLAY, 's':STOP, 'p':BACK, 'n':NEXT"]
 
@@ -122,12 +122,16 @@ drawNext = withAttr nextAttr $ str "Next"
 
 drawPrevious = withAttr previousAttr $ str "Previous"
 
+drawSearch :: Bool -> Widget n
+drawSearch b = case b of
+               True -> vLimit 5 $ hBox []
 -- drawSearch :: St -> Widget a
 -- drawSearch st = C.hCenterLayer ( vLimit 3 $ hLimit 50 $ E.renderEditor  (str . unlines) True (st^_edit))
 
 handleEvent :: AppState -> BrickEvent Name Tick -> EventM Name (Next AppState)
 handleEvent a (VtyEvent (V.EvKey (V.KChar 'p') [])) = play a 
--- handleEvent a (VtyEvent (V.EvKey (V.KChar 's') [])) = continue $ step a 
+-- handleEvent a (VtyEvent (V.EvKey (V.KChar 's') [])) = pause a
+handleEvent a (VtyEvent (V.EvKey (V.KChar 'f') [])) = search a
 -- handleEvent a (VtyEvent (V.EvKey (V.KChar 'p') [])) = continue $ step a 
 -- handleEvent a (VtyEvent (V.EvKey (V.KChar 'n') [])) = continue $ step a 
 handleEvent a _ = continue a
@@ -142,5 +146,18 @@ play a = do
          liftIO $ putStrLn $ show a' 
          continue a'
 
-          
--- exec :: AppState ->  EventM Name (Next AppState)
+-- pause :: AppState -> EventM Name (Next AppState)
+-- pause a = do
+--           a' <- liftIO $ execAppStateIO CONTROLLER.pause a
+--           liftIO $ putStrLn $ show a' 
+--           continue a'
+
+-- Instead of changing AppState, it should start the search function in controller
+search :: AppState-> EventM Name (Next AppState)
+search a = undefined
+-- search a = do
+--            liftIO $ putStrLn "Please enter a song name or artist name"
+--            c <- getLine
+--            a'<- execAppStateIO $ CONTROLLER.search c
+--            continue a'
+           
