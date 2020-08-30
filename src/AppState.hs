@@ -21,15 +21,6 @@ data AppState = AppState {
 
 $(makeLenses ''AppState)
 
-newAppState :: AppState
-newAppState = AppState {
-    _accessToken = Nothing,
-    _isPlaying = False,
-    _showSearch = False,
-    _searchInput = Nothing,
-    _trackName = Nothing
-}
-
 type AppStateT = StateT AppState
 type AppStateM a = forall m. (Monad m) => AppStateT m a
 type AppStateIO a = AppStateT IO a
