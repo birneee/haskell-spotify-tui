@@ -45,29 +45,3 @@ evalAppStateIO m = evalStateT m
 
 execAppStateIO :: AppStateIO a -> AppState -> IO AppState
 execAppStateIO m = execStateT m
-
--- example
-
-togglePlay :: AppStateM ()
-togglePlay = modifying isPlaying not
-
-pause :: AppStateM ()
-pause = assign isPlaying False
-
-getIsPlaying :: AppStateM Bool
-getIsPlaying = use isPlaying
-
--- test
-
-execTest :: IO ()
-execTest = void $ execAppStateIO test newAppState
-
-test :: AppStateIO ()
-test = do
-    get >>= liftIO . print
-    liftIO $ print "toggle play"
-    togglePlay
-    get >>= liftIO . print
-    liftIO $ print "toggle play"
-    togglePlay
-    get >>= liftIO . print

@@ -5,12 +5,15 @@ module ApiClient where
 
 import           ApiObjects.AccessToken              (AccessToken,
                                                       toAuthorizationHeader)
+import           ApiObjects.Album                    (images)
 import           ApiObjects.CurrentlyPlayingResponse (CurrentlyPlayingResponse,
                                                       item)
+import           ApiObjects.Device                   (DeviceId)
 import           ApiObjects.DevicesResponse          (DevicesResponse)
+import           ApiObjects.Image                    (url)
 import           ApiObjects.PlayerResponse           (PlayerResponse)
 import           ApiObjects.SearchResponse           (SearchResponse)
-import           ApiObjects.Track                    (album, images, url)
+import           ApiObjects.Track                    (Uri, album)
 import           Codec.Picture.Types                 (Image)
 import           Codec.Picture.Types                 (PixelRGB8)
 import           Control.Lens.Getter                 (view, (^.))
@@ -28,6 +31,7 @@ import           Utils.RequestLenses                 (jsonBody, method,
                                                       queryString,
                                                       requestHeaders)
 import           Utils.ResponseLenses                (body, status)
+import           Utils.StringUtils                   (pack)
 
 play :: AccessToken -> IO Status
 play accessToken = do
@@ -38,18 +42,30 @@ play accessToken = do
   response <- httpLbs request manager
   return $ response ^. status
 
-playTrack :: AccessToken -> String -> IO Status
+playTrack :: AccessToken -> Uri -> IO Status
 playTrack accessToken uri = playTracks accessToken [uri]
 
-playTracks :: AccessToken -> [String] -> IO Status
-playTracks accessToken uris = do
+playTracks :: AccessToken -> [Uri] -> IO Status
+playTracks accessToken uris = playTracksOnDevice accessToken uris Nothing
+
+playTrackOnDevice :: AccessToken -> Uri -> DeviceId -> IO Status
+playTrackOnDevice accessToken uri deviceId = playTracksOnDevice accessToken [uri] (Just deviceId)
+
+playTracksOnDevice :: AccessToken -> [Uri] -> (Maybe DeviceId) -> IO Status
+playTracksOnDevice accessToken uris deviceId = do
   request <- parseRequest "https://api.spotify.com/v1/me/player/play"
         <&> method .~ "PUT"
+        <&> queryString .~ query
         <&> requestHeaders .~ [toAuthorizationHeader accessToken]
         <&> jsonBody .~ object ["uris" .= uris]
   manager <- newManager tlsManagerSettings
   response <- httpLbs request manager
   return $ response ^. status
+  where
+    query :: [(String, Maybe String)]
+    query = case deviceId of
+      Nothing        -> []
+      Just deviceId' -> [("device_id", Just deviceId')]
 
 pause :: AccessToken -> IO Status
 pause accessToken = do
@@ -88,7 +104,7 @@ setVolume accessToken volumePercent = do
   response <- httpLbs request manager
   return $ response ^. status
 
-setPlayer :: AccessToken -> String -> IO Status
+setPlayer :: AccessToken -> DeviceId -> IO Status
 setPlayer accessToken deviceId = do
   request <- parseRequest "https://api.spotify.com/v1/me/player"
         <&> method .~ "PUT"
