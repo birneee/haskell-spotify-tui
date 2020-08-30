@@ -6,7 +6,7 @@
 
 module TUI (tuiMain) where
 
-import qualified Controller as CONTROLLER (play, pause, initAppState)
+import qualified Controller as CONTROLLER ( initAppState, play, search)
 import AppState (AppState, execAppStateIO)
 import Data.Char
 import Control.Lens
@@ -130,7 +130,7 @@ drawSearch b = case b of
 
 handleEvent :: AppState -> BrickEvent Name Tick -> EventM Name (Next AppState)
 handleEvent a (VtyEvent (V.EvKey (V.KChar 'p') [])) = play a 
-handleEvent a (VtyEvent (V.EvKey (V.KChar 's') [])) = pause a
+-- handleEvent a (VtyEvent (V.EvKey (V.KChar 's') [])) = pause a
 handleEvent a (VtyEvent (V.EvKey (V.KChar 'f') [])) = search a
 -- handleEvent a (VtyEvent (V.EvKey (V.KChar 'p') [])) = continue $ step a 
 -- handleEvent a (VtyEvent (V.EvKey (V.KChar 'n') [])) = continue $ step a 
@@ -146,17 +146,18 @@ play a = do
          liftIO $ putStrLn $ show a' 
          continue a'
 
-pause :: AppState -> EventM Name (Next AppState)
-pause a = do
-          a' <- liftIO $ execAppStateIO CONTROLLER.pause a
-          liftIO $ putStrLn $ show a' 
-          continue a'
+-- pause :: AppState -> EventM Name (Next AppState)
+-- pause a = do
+--           a' <- liftIO $ execAppStateIO CONTROLLER.pause a
+--           liftIO $ putStrLn $ show a' 
+--           continue a'
 
 -- Instead of changing AppState, it should start the search function in controller
 search :: AppState-> EventM Name (Next AppState)
-search a = do
-           liftIO $ putStrLn "Please enter a song name or artist name"
-           c <- getLine
-           a'<- execAppStateIO $ CONTROLLER.search c
-           continue a'
+search a = undefined
+-- search a = do
+--            liftIO $ putStrLn "Please enter a song name or artist name"
+--            c <- getLine
+--            a'<- execAppStateIO $ CONTROLLER.search c
+--            continue a'
            

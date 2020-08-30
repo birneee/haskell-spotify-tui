@@ -1,4 +1,4 @@
-module Controller (play, search) where
+module Controller (play, search, initAppState) where
     
 import AppState (AppStateIO, isPlaying, _showSearch, _searchInput, _trackName)
 import Control.Lens (assign)
