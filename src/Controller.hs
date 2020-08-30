@@ -1,4 +1,4 @@
-module Controller (play, pause) where
+module Controller (play, pause, search) where
     
 import AppState (AppStateIO, isPlaying)
 import Control.Lens (assign)
@@ -9,7 +9,7 @@ play = do assign isPlaying True
 pause :: AppStateIO ()
 pause = do assign isPlaying False
 
-search :: AppStateIO ()
-search = undefined
+search :: String -> AppStateIO ()
+search s = undefined
 
 

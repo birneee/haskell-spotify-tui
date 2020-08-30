@@ -13,7 +13,10 @@ import           Data.Functor.Identity     (Identity, runIdentity)
 
 data AppState = AppState {
     _accessToken :: Maybe AccessToken,
-    _isPlaying   :: Bool
+    _isPlaying   :: Bool,
+    _showSearch  :: Bool,
+    _searchInput :: String,
+    _trackName    :: Maybe String
 } deriving(Show, Eq)
 
 $(makeLenses ''AppState)

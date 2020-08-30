@@ -4,9 +4,9 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module Tui.Tui (app, drawMain, theMap, playAttr, stopAttr, nextAttr, previousAttr, processLine) where
+module Tui.Tui (app, drawMain, theMap, playAttr, stopAttr, nextAttr, previousAttr) where
 
-import qualified Controller as CONTROLLER (play, pause)
+import qualified Controller as CONTROLLER (play, pause, search)
 import AppState (AppState, execAppStateIO, newAppState)
 import Data.Char
 import Control.Lens
@@ -83,7 +83,7 @@ nextAttr = "nextAttr"
 previousAttr = "previousAttr"
 
 app :: App AppState Tick Name
-app = App { appDraw = drawUI 
+app = App { appDraw = drawUI
           , appChooseCursor = M.showFirstCursor
           , appHandleEvent = handleEvent
           , appStartEvent = return
@@ -144,10 +144,12 @@ pause a = do
           a' <- liftIO $ execAppStateIO CONTROLLER.pause a
           liftIO $ putStrLn $ show a' 
           continue a'
-search :: AppState-> EventM Name (Next AppState)
-search = undefined
--- search a = do
---           n <- liftIO $ putStrLn "Please enter a song name or artist name"
 
-processLine :: String -> AppState
-processLine c = undefined
+-- Instead of changing AppState, it should start the search function in controller
+search :: AppState-> EventM Name (Next AppState)
+search a = do
+           liftIO $ putStrLn "Please enter a song name or artist name"
+           c <- getLine
+           a'<- execAppStateIO $ CONTROLLER.search c
+           continue a'
+           
