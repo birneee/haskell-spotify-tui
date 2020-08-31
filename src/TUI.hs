@@ -5,7 +5,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 
 module TUI (tuiMain) where
-
+import Control.Lens
 import qualified Controller as CONTROLLER ( initAppState, play, search)
 import AppState (AppState, execAppStateIO)
 import Data.Char
@@ -36,6 +36,7 @@ import Brick.Types
   ( Widget
   , Padding(..)
   )
+
 import Brick.Widgets.Core
   ( (<=>)
   , (<+>)
@@ -52,6 +53,7 @@ import Brick.Widgets.Core
   
 import qualified Brick.Widgets.Edit as E
 import qualified Brick.Widgets.Core as C
+import qualified Brick.Focus as F
 import Brick.Types (Extent)
 import Brick.Types (Location)
 import Control.Monad.IO.Class (MonadIO(liftIO))
@@ -64,17 +66,21 @@ type Name = ()
 
 data Name1 = TextBox
           deriving (Show, Ord, Eq)
--- Editor
-data St =
-    St {_edit :: E.Editor String Name1
+data UIState =
+    UIState {_edit :: E.Editor String Name, -- Search input
+             _appState :: AppState
        }
+
+makeLenses ''UIState
+
 
 theMap :: AttrMap
 theMap = attrMap V.defAttr
     [ (playAttr,      V.white `on` V.green),
     (stopAttr,      V.white `on` V.red),
     (nextAttr,      V.white `on` V.blue),
-    (previousAttr,      V.white `on` V.cyan)
+    (previousAttr,      V.white `on` V.cyan),
+    (E.editAttr, V.white `on` V.yellow)
     ]
 
 playAttr, stopAttr, nextAttr, previousAttr :: AttrName
@@ -83,7 +89,7 @@ stopAttr = "stopAttr"
 nextAttr = "nextAttr"
 previousAttr = "previousAttr"
 
-app :: App AppState Tick Name
+app :: App UIState () Name
 app = App { appDraw = drawUI
           , appChooseCursor = M.showFirstCursor
           , appHandleEvent = handleEvent
@@ -93,26 +99,33 @@ app = App { appDraw = drawUI
 
 tuiMain :: IO ()
 tuiMain = do
-  appState <- CONTROLLER.initAppState
-  defaultMain app appState
+  u <- newUIState
+  defaultMain app u 
   return ()
   
+newUIState :: IO UIState
+newUIState = do
+             appState <- CONTROLLER.initAppState
+             return $ UIState (E.editor () Nothing "") appState
+                      
 
-drawUI :: AppState -> [Widget Name]
-drawUI a =  [C.center $ drawMain, drawSearch True]
+drawUI :: UIState -> [Widget Name]
+drawUI ui =  [C.center $ drawMain ui]
 
-drawMain = vLimit 100 $ vBox [drawMusic  <=> C.center (drawFunction), str $ "'p':PLAY, 's':STOP, 'p':BACK, 'n':NEXT"]
+drawMain  ui= vLimit 100 $ vBox [drawMusic  <=> C.center (drawFunction) <=> drawSearch ui]
 
 drawMusic :: Widget a
 drawMusic = withBorderStyle BS.unicode $ B.borderWithLabel (str "FFP Music Player") $ (C.center drawIcon <+> B.vBorder <+> drawInfo)
 
 drawInfo = vBox [  C.center (str"Title"),  C.center (str"Song"),  C.center(str"Artist"), C.center(str"Review")]
 
-drawIcon::Widget a
+drawIcon:: Widget a
 drawIcon = C.withBorderStyle BS.unicodeBold $ B.borderWithLabel (str "Album") (str "")
 
 drawFunction = padRight (Pad 2) drawPrevious <+> padRight (Pad 2) drawStop <+> padRight (Pad 2) drawPlay <+> padRight (Pad 2) drawNext
--- padRight (Pad 2) drawPrevious <+> padRight (Pad 2) drawPause <+> padRight (Pad 2) withAttr $ playAttr . visible  <+> padRight (Pad 2) drawNext
+
+drawSearch :: UIState -> Widget Name
+drawSearch st = str "Input " <+> (vLimit 3 $ hLimit 50 $ E.renderEditor (str . unlines) True (st^.edit))
 
 drawPlay = withAttr playAttr $ str "Play"
 
@@ -122,29 +135,21 @@ drawNext = withAttr nextAttr $ str "Next"
 
 drawPrevious = withAttr previousAttr $ str "Previous"
 
-drawSearch :: Bool -> Widget n
-drawSearch b = case b of
-               True -> vLimit 5 $ hBox []
--- drawSearch :: St -> Widget a
--- drawSearch st = C.hCenterLayer ( vLimit 3 $ hLimit 50 $ E.renderEditor  (str . unlines) True (st^_edit))
-
-handleEvent :: AppState -> BrickEvent Name Tick -> EventM Name (Next AppState)
-handleEvent a (VtyEvent (V.EvKey (V.KChar 'p') [])) = play a 
+handleEvent :: UIState -> BrickEvent Name () -> EventM Name (Next UIState)
+-- handleEvent a (VtyEvent (V.EvKey (V.KChar 'p') [])) = play a 
 -- handleEvent a (VtyEvent (V.EvKey (V.KChar 's') [])) = pause a
 handleEvent a (VtyEvent (V.EvKey (V.KChar 'f') [])) = search a
 -- handleEvent a (VtyEvent (V.EvKey (V.KChar 'p') [])) = continue $ step a 
--- handleEvent a (VtyEvent (V.EvKey (V.KChar 'n') [])) = continue $ step a 
+-- handleEvent a (VtyEvent (V.EvKey (V.KChar 'n') [])) = continue $ step a
+-- handleEvent a (VtyEvent (V.EvKey V.KEsc [])) = M.halt a
 handleEvent a _ = continue a
 
--- step :: AppState -> AppState
--- step a = a {_isPlaying = True}
-
-play :: AppState -> EventM Name (Next AppState)
-play a = do 
-         a' <- liftIO $ execAppStateIO CONTROLLER.play a 
-        --  let old = a ^. isPlaying
-         liftIO $ putStrLn $ show a' 
-         continue a'
+-- play :: UIState -> EventM Name (Next UIState)
+-- play a = do 
+--          a' <- liftIO $ execAppStateIO CONTROLLER.play a 
+--         --  let old = a ^. isPlaying
+--          liftIO $ putStrLn $ show a' 
+--          continue a'
 
 -- pause :: AppState -> EventM Name (Next AppState)
 -- pause a = do
@@ -153,7 +158,7 @@ play a = do
 --           continue a'
 
 -- Instead of changing AppState, it should start the search function in controller
-search :: AppState-> EventM Name (Next AppState)
+search :: UIState-> EventM Name (Next UIState)
 search a = undefined
 -- search a = do
 --            liftIO $ putStrLn "Please enter a song name or artist name"
