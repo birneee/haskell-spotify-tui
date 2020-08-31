@@ -53,6 +53,8 @@ import Brick.Widgets.Core
   
 import qualified Brick.Widgets.Edit as E
 import qualified Brick.Widgets.Core as C
+import qualified Brick.Types as T
+
 import qualified Brick.Focus as F
 import Brick.Types (Extent)
 import Brick.Types (Location)
@@ -80,7 +82,7 @@ theMap = attrMap V.defAttr
     (stopAttr,      V.white `on` V.red),
     (nextAttr,      V.white `on` V.blue),
     (previousAttr,      V.white `on` V.cyan),
-    (E.editAttr, V.white `on` V.yellow)
+    (E.editAttr, V.white `on` V.black)
     ]
 
 playAttr, stopAttr, nextAttr, previousAttr :: AttrName
@@ -125,7 +127,7 @@ drawIcon = C.withBorderStyle BS.unicodeBold $ B.borderWithLabel (str "Album") (s
 drawFunction = padRight (Pad 2) drawPrevious <+> padRight (Pad 2) drawStop <+> padRight (Pad 2) drawPlay <+> padRight (Pad 2) drawNext
 
 drawSearch :: UIState -> Widget Name
-drawSearch st = str "Input " <+> (vLimit 3 $ hLimit 50 $ E.renderEditor (str . unlines) True (st^.edit))
+drawSearch st = str "Input " <+> (vLimit 1 $ E.renderEditor (str . unlines) True (st^.edit))
 
 drawPlay = withAttr playAttr $ str "Play"
 
@@ -136,33 +138,27 @@ drawNext = withAttr nextAttr $ str "Next"
 drawPrevious = withAttr previousAttr $ str "Previous"
 
 handleEvent :: UIState -> BrickEvent Name () -> EventM Name (Next UIState)
--- handleEvent a (VtyEvent (V.EvKey (V.KChar 'p') [])) = play a 
--- handleEvent a (VtyEvent (V.EvKey (V.KChar 's') [])) = pause a
-handleEvent a (VtyEvent (V.EvKey (V.KChar 'f') [])) = search a
--- handleEvent a (VtyEvent (V.EvKey (V.KChar 'p') [])) = continue $ step a 
--- handleEvent a (VtyEvent (V.EvKey (V.KChar 'n') [])) = continue $ step a
--- handleEvent a (VtyEvent (V.EvKey V.KEsc [])) = M.halt a
-handleEvent a _ = continue a
+handleEvent ui (VtyEvent (V.EvKey V.KEnter [])) = search ui                                    -- call search function in controller
+handleEvent ui (VtyEvent (V.EvKey (V.KChar 'p') [])) = play ui
+handleEvent ui (VtyEvent (V.EvKey (V.KChar 'n') [])) = next ui
+handleEvent ui (VtyEvent (V.EvKey (V.KChar 'b') [])) = previous ui
+-- handleEvent ui _ = continue ui
+handleEvent ui (VtyEvent ev) = continue =<< T.handleEventLensed ui edit E.handleEditorEvent ev -- for typing input
 
--- play :: UIState -> EventM Name (Next UIState)
--- play a = do 
---          a' <- liftIO $ execAppStateIO CONTROLLER.play a 
---         --  let old = a ^. isPlaying
---          liftIO $ putStrLn $ show a' 
---          continue a'
-
--- pause :: AppState -> EventM Name (Next AppState)
--- pause a = do
---           a' <- liftIO $ execAppStateIO CONTROLLER.pause a
---           liftIO $ putStrLn $ show a' 
---           continue a'
 
 -- Instead of changing AppState, it should start the search function in controller
 search :: UIState-> EventM Name (Next UIState)
-search a = undefined
--- search a = do
---            liftIO $ putStrLn "Please enter a song name or artist name"
---            c <- getLine
---            a'<- execAppStateIO $ CONTROLLER.search c
---            continue a'
-           
+search ui = 
+           continue ui
+
+play :: UIState-> EventM Name (Next UIState)
+play ui = let a = ui ^. appState
+              u = execAppStateIO CONTROLLER.play a
+              ui.appState = u
+              in continue ui
+
+next :: UIState-> EventM Name (Next UIState)
+next = undefined
+
+previous :: UIState-> EventM Name (Next UIState)
+previous = undefined
