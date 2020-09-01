@@ -11,7 +11,6 @@ import           Control.Monad.Trans.State (get)
 
 emptyAppState :: AppState
 emptyAppState = AppState {
-    _accessToken = Nothing,
     _isPlaying = False
 }
 
