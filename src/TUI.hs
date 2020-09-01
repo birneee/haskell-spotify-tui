@@ -7,7 +7,8 @@
 module TUI (tuiMain) where
 
 import qualified Controller as CONTROLLER (play, initAppState)
-import AppState (AppState, execAppStateIO)
+import AppState (albumCover, AppState, execAppStateIO)
+import Widgets.ImageWidget (greedyRectangularImageWidget)
 import Data.Char
 import Control.Lens
 import Brick
@@ -55,7 +56,6 @@ import qualified Brick.Widgets.Core as C
 import Brick.Types (Extent)
 import Brick.Types (Location)
 import Control.Monad.IO.Class (MonadIO(liftIO))
-import Control.Monad (void)
 
 data State = String
 data Event = Event
@@ -96,22 +96,28 @@ tuiMain = do
   appState <- CONTROLLER.initAppState
   defaultMain app appState
   return ()
-  
 
 drawUI :: AppState -> [Widget Name]
-drawUI a =  [C.center $ drawMain]
+drawUI a =  [C.center $ drawMain a]
 
-drawMain = vLimit 100 $ vBox [drawMusic  <=> C.center (drawFunction), str $ "'p':PLAY, 's':STOP, 'p':BACK, 'n':NEXT"]
+drawMain :: AppState -> Widget n
+drawMain a = vLimit 100 $ vBox [drawMusic a <=> drawFunction, str $ "'p':PLAY, 's':STOP, 'p':BACK, 'n':NEXT, 'q':QUIT"]
 
-drawMusic :: Widget a
-drawMusic = withBorderStyle BS.unicode $ B.borderWithLabel (str "FFP Music Player") $ (C.center drawIcon <+> B.vBorder <+> drawInfo)
+drawMusic :: AppState -> Widget n
+drawMusic a = withBorderStyle BS.unicode $ B.borderWithLabel (str "FFP Music Player") $ (C.center (drawAlbumCover a) <+> B.vBorder <+> drawInfo a)
 
-drawInfo = vBox [  C.center (str"Title"),  C.center (str"Song"),  C.center(str"Artist"), C.center(str"Review")]
+drawInfo :: AppState -> Widget n
+drawInfo a = vBox [  C.center (str"Title"),  C.center (str"Song"),  C.center(str"Artist"), C.center(str"Review")]
 
-drawIcon::Widget a
-drawIcon = C.withBorderStyle BS.unicodeBold $ B.borderWithLabel (str "Album") (str "")
+drawAlbumCover:: AppState -> Widget n
+drawAlbumCover state = do
+  let image = state ^. albumCover
+  B.border $ greedyRectangularImageWidget image
 
-drawFunction = padRight (Pad 2) drawPrevious <+> padRight (Pad 2) drawStop <+> padRight (Pad 2) drawPlay <+> padRight (Pad 2) drawNext
+drawFunction = 
+  C.vLimit 3 $
+    C.center $
+      padRight (Pad 2) drawPrevious <+> padRight (Pad 2) drawStop <+> padRight (Pad 2) drawPlay <+> padRight (Pad 2) drawNext
 -- padRight (Pad 2) drawPrevious <+> padRight (Pad 2) drawPause <+> padRight (Pad 2) withAttr $ playAttr . visible  <+> padRight (Pad 2) drawNext
 
 drawPlay = withAttr playAttr $ str "Play"
@@ -130,6 +136,7 @@ handleEvent a (VtyEvent (V.EvKey (V.KChar 'p') [])) = play a
 -- handleEvent a (VtyEvent (V.EvKey (V.KChar 's') [])) = continue $ step a 
 -- handleEvent a (VtyEvent (V.EvKey (V.KChar 'p') [])) = continue $ step a 
 -- handleEvent a (VtyEvent (V.EvKey (V.KChar 'n') [])) = continue $ step a 
+handleEvent a (VtyEvent (V.EvKey (V.KChar 'q') [])) = halt a
 handleEvent a _ = continue a
 
 -- step :: AppState -> AppState
