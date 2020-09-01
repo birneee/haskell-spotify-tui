@@ -19,7 +19,11 @@ import           Data.Maybe              (fromJust)
 import           GHC.Base                (Alternative ((<|>)))
 import qualified Persistence             as P (loadRefreshToken,
                                                saveRefreshToken)
+import           Utils.ImageGenerator    (generateRainbowImage)
 import           Utils.StatusLenses      (code)
+
+-- |placeholder that is displayed when no album cover is available
+defaultAlbumCover = generateRainbowImage
 
 search :: String -> AppStateIO ()
 search s = undefined
@@ -36,7 +40,7 @@ initAppState = do
         _trackName = Nothing,
         _albumName = Nothing,
         _artistNames = [],
-        _albumCover = undefined,
+        _albumCover = defaultAlbumCover,
         _showSearch = False,
         _searchInput = ""
     }
