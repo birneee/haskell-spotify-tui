@@ -4,6 +4,7 @@
 module AppState where
 
 import           ApiObjects.AccessToken    (AccessToken)
+import           Codec.Picture             (Image, PixelRGB8)
 import           Control.Lens              (assign, makeLenses, modifying, use,
                                             view, (%=), (.=))
 import           Control.Monad             (void)
@@ -16,8 +17,12 @@ data AppState = AppState {
     _isPlaying   :: Bool,
     _showSearch  :: Bool,
     _searchInput :: Maybe String,
-    _trackName   :: Maybe String
+    _trackName   :: Maybe String,
+    _albumCover  :: Image PixelRGB8
 } deriving(Show, Eq)
+
+instance Show (Image a) where
+    show _ = "<image>"
 
 $(makeLenses ''AppState)
 

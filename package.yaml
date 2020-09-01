@@ -32,11 +32,11 @@ dependencies:
 - open-browser
 - relude
 - template-haskell
+- text
 - transformers
 - wai
 - warp
 - brick
-- microlens
 - vty
 
 library:
