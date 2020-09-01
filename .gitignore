@@ -4,3 +4,4 @@
 *.o
 refresh_token.tmp
 FFP-Project.cabal
+/dist

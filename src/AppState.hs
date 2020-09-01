@@ -15,6 +15,9 @@ import           Data.Functor.Identity     (Identity, runIdentity)
 data AppState = AppState {
     _accessToken :: Maybe AccessToken,
     _isPlaying   :: Bool,
+    _showSearch  :: Bool,
+    _searchInput :: Maybe String,
+    _trackName   :: Maybe String,
     _albumCover  :: Image PixelRGB8
 } deriving(Show, Eq)
 
