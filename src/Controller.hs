@@ -1,6 +1,6 @@
 -- |TODO refresh access token if expired
 -- |TODO request new refresh token if not valid
-module Controller (initAppState, play, requestAccessToken) where
+module Controller (initAppState, play, search, requestAccessToken) where
 
 import qualified ApiClient               as API (pause, play)
 import           ApiObjects.AccessToken  (AccessToken)
@@ -8,7 +8,8 @@ import           ApiObjects.RefreshToken (RefreshToken)
 import           AppState                (AppState (AppState), AppStateIO,
                                           accessToken, isPlaying, _accessToken,
                                           _albumCover, _albumName, _artistNames,
-                                          _deviceId, _isPlaying, _trackName)
+                                          _deviceId, _isPlaying, _searchInput,
+                                          _showSearch, _trackName)
 import qualified Authenticator           as A (getAccessToken,
                                                getAuthorizationCode,
                                                getRefreshToken)
@@ -19,6 +20,9 @@ import           GHC.Base                (Alternative ((<|>)))
 import qualified Persistence             as P (loadRefreshToken,
                                                saveRefreshToken)
 import           Utils.StatusLenses      (code)
+
+search :: String -> AppStateIO ()
+search s = undefined
 
 initAppState :: IO AppState
 -- | create a fresh AppState instance
@@ -32,7 +36,9 @@ initAppState = do
         _trackName = Nothing,
         _albumName = Nothing,
         _artistNames = [],
-        _albumCover = undefined
+        _albumCover = undefined,
+        _showSearch = False,
+        _searchInput = ""
     }
 
 play :: AppStateIO ()
