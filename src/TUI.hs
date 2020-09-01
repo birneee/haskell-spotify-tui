@@ -6,8 +6,8 @@
 
 module TUI (tuiMain) where
 import Control.Lens
-import qualified Controller as CONTROLLER ( initAppState, play, search)
-import AppState (AppState, execAppStateIO)
+import qualified Controller as CONTROLLER ( initAppState, togglePlay, search)
+import AppState (searchInput, showSearch, AppState, execAppStateIO)
 import Data.Char
 import Control.Lens
 import Brick
@@ -138,22 +138,32 @@ drawNext = withAttr nextAttr $ str "Next"
 drawPrevious = withAttr previousAttr $ str "Previous"
 
 handleEvent :: UIState -> BrickEvent Name () -> EventM Name (Next UIState)
-handleEvent ui (VtyEvent (V.EvKey V.KEnter [])) = search ui                                    -- call search function in controller
-handleEvent ui (VtyEvent (V.EvKey (V.KChar 'p') [])) = play ui
+handleEvent a (VtyEvent (V.EvKey (V.KEsc) [])) = halt a                       
+handleEvent ui (VtyEvent (V.EvKey V.KEnter [])) | ui^.appState^.showSearch = do
+                                                                             let content = head $ E.getEditContents $ ui^.edit
+                                                                             liftIO $ putStrLn content
+                                                                             let ui' =  ui & (appState . searchInput ) .~ ""
+                                                                             search ui'
+                                                                               
+                                                                            --  (ui . appState . searchInput) .= content --setter
+                                                                             -- continue ui
+                                                                             
+handleEvent ui (VtyEvent ev) | ui^.appState^.showSearch = continue =<< T.handleEventLensed ui edit E.handleEditorEvent ev -- for typing input
+handleEvent ui (VtyEvent (V.EvKey (V.KChar ' ') []))  = play ui --leer Taste togglePlay
 handleEvent ui (VtyEvent (V.EvKey (V.KChar 'n') [])) = next ui
 handleEvent ui (VtyEvent (V.EvKey (V.KChar 'b') [])) = previous ui
--- handleEvent ui _ = continue ui
-handleEvent ui (VtyEvent ev) = continue =<< T.handleEventLensed ui edit E.handleEditorEvent ev -- for typing input
-
+handleEvent ui _ = continue ui
 
 -- Instead of changing AppState, it should start the search function in controller
 search :: UIState-> EventM Name (Next UIState)
-search ui = 
-           continue ui
+search ui = let a = ui ^. appState
+                u = execAppStateIO CONTROLLER.search a
+                ui.appState = u
+                in continue ui
 
 play :: UIState-> EventM Name (Next UIState)
 play ui = let a = ui ^. appState
-              u = execAppStateIO CONTROLLER.play a
+              u = execAppStateIO CONTROLLER.togglePlay a
               ui.appState = u
               in continue ui
 
@@ -162,3 +172,4 @@ next = undefined
 
 previous :: UIState-> EventM Name (Next UIState)
 previous = undefined
+ 

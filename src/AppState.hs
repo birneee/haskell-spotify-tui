@@ -12,11 +12,12 @@ import           Control.Monad.Trans.State (StateT, evalStateT, execStateT, get)
 import           Data.Functor.Identity     (Identity, runIdentity)
 
 data AppState = AppState {
-    _accessToken :: Maybe AccessToken,
-    _isPlaying   :: Bool,
-    _showSearch  :: Bool,
-    _searchInput :: Maybe String,
-    _trackName   :: Maybe String
+    _accessToken :: AccessToken,
+    _isPlaying    :: Bool,
+    _showSearch   :: Bool,
+    _searchInput  :: String,
+    _trackName    :: Maybe String,
+    _searchResults:: []
 } deriving(Show, Eq)
 
 $(makeLenses ''AppState)

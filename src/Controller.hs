@@ -1,23 +1,31 @@
-module Controller (play, search, initAppState) where
+module Controller (togglePlay, search, initAppState) where
     
-import AppState (AppStateIO, isPlaying, _showSearch, _searchInput, _trackName)
-import Control.Lens (assign)
+import AppState (accessToken, searchInput, AppStateIO, isPlaying, _showSearch, _searchInput, _trackName)
+import Control.Lens (view, use, assign)
 
 import           AppState     (AppState (AppState), AppStateIO, isPlaying,
                                _accessToken, _isPlaying)
 import           Control.Lens (assign)
+import Control.Monad.IO.Class (MonadIO(liftIO))
+import ApiClient (searchTrack)
 
-search :: String -> AppStateIO ()
-search s = undefined
+search :: AppStateIO ()
+search = do
+         input <- use searchInput
+         liftIO $ putStrLn input
+         at <- use accessToken
+         (status, response) <- liftIO $ searchTrack at input
+        --  case status of
+         return ()
 
 initAppState :: IO AppState
 initAppState = return AppState {
-        _accessToken = Nothing,
+        _accessToken = undefined,
         _isPlaying = False,
         _showSearch = True,
-        _searchInput = Nothing,
+        _searchInput = "",
         _trackName = Nothing
     }
 
-play :: AppStateIO ()
-play = do assign isPlaying True
+togglePlay :: AppStateIO ()
+togglePlay = do assign isPlaying True
