@@ -140,7 +140,7 @@ handleEvent a (VtyEvent (V.EvKey (V.KChar 'p') [])) = play a
 handleEvent a (VtyEvent (V.EvKey (V.KChar 'f') [])) = search a
 -- handleEvent a (VtyEvent (V.EvKey (V.KChar 'p') [])) = continue $ step a 
 -- handleEvent a (VtyEvent (V.EvKey (V.KChar 'n') [])) = continue $ step a
-handleEvent a (VtyEvent (V.EvKey (V.KChar 'm') [])) = (liftIO $ execAppStateIO CONTROLLER.mandelbrot a) >>= continue -- easter egg
+handleEvent a (VtyEvent (V.EvKey (V.KChar 'm') [V.MMeta])) = (liftIO $ execAppStateIO CONTROLLER.mandelbrot a) >>= continue -- easter egg, Key: Alt + M
 handleEvent a (VtyEvent (V.EvKey (V.KChar 'q') [])) = halt a
 handleEvent a _ = continue a
 
