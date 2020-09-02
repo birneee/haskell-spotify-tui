@@ -7,7 +7,8 @@
 module TUI (tuiMain) where
 
 import ApiObjects.Track (trackId)
-import AppState (AppState, execAppStateIO, isPlaying, searchInput, searchResults, showSearch)
+import AppState (AppState, albumCover, execAppStateIO, isPlaying, searchInput, searchResults, showSearch)
+import Widgets.ImageWidget (greedyRectangularImageWidget)
 import Brick
   ( App (..),
     AttrMap,
@@ -133,25 +134,27 @@ newUIState = do
 drawUI :: UIState -> [Widget Name]
 drawUI ui = [C.center $ drawMain ui]
 
-drawMain ui = vLimit 100 $ vBox [drawMusic ui <=> C.center (drawFunction) <=> drawSearch ui]
+drawMain ui = vLimit 100 $ vBox [drawMusic ui, drawFunction, drawSearch ui, str $ "'p':PLAY, 's':STOP, 'p':BACK, 'n':NEXT, 'esc':QUIT"]
 
 drawMusic :: UIState -> Widget a
-drawMusic ui = withBorderStyle BS.unicode $ B.borderWithLabel (str "FFP Music Player") $ (C.center drawIcon <+> B.vBorder <+> drawInfo ui)
+drawMusic ui = withBorderStyle BS.unicode $ B.borderWithLabel (str "FFP Music Player") $ (C.center (drawAlbumCover ui) <+> B.vBorder <+> drawInfo ui)
 
 -- drawInfo = vBox [  C.center (str"Title"),  C.center (str"Song"),  C.center(str"Artist"), C.center(str"Review")]
 drawInfo :: UIState -> Widget a
 drawInfo ui
   | ui ^. appState ^. showSearch = defaultUI
-  | length (ui ^. appState ^. searchResults) > 0 =
-    let id = ui ^. appState ^. searchResults ^. trackId
-     in B.borderWithLabel (str "Result") (L.renderList listDrawElement False (L.list "list" (Vec.fromList $ id) 1))
+  -- | length (ui ^. appState ^. searchResults) > 0 =
+  --   let id = ui ^. appState ^. searchResults ^. trackId
+  --    in B.borderWithLabel (str "Result") (L.renderList listDrawElement False (L.list "list" (Vec.fromList $ id) 1))
 
 -- (L.renderList listDrawElement False (L.list () $ Vec.fromList $ ui ^. appState ^. searchResults ^. trackId))
 defaultUI :: Widget a
 defaultUI = C.withBorderStyle BS.unicode $ str " "
 
-drawIcon :: Widget a
-drawIcon = C.withBorderStyle BS.unicodeBold $ B.borderWithLabel (str "Album") (str "")
+drawAlbumCover :: UIState -> Widget n
+drawAlbumCover ui = do
+  let image = ui ^. appState ^. albumCover
+  B.border $ greedyRectangularImageWidget image
 
 drawFunction = padRight (Pad 2) drawPrevious <+> padRight (Pad 2) drawStop <+> padRight (Pad 2) drawPlay <+> padRight (Pad 2) drawNext
 

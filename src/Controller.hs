@@ -1,19 +1,36 @@
-module Controller (Controller.play, Controller.pause, search, Controller.next, previous, initAppState) where
+-- | TODO refresh access token if expired
+--  |TODO request new refresh token if not valid
+module Controller (initAppState, play, pause, next, previous, search, requestAccessToken) where
 
-import ApiClient as API (next, pause, play, searchTrack)
+import qualified ApiClient as API (next, pause, play, searchTrack)
 import ApiObjects.AccessToken (AccessToken)
 import ApiObjects.RefreshToken (RefreshToken)
--- import ApiObjects.SearchResponse   (Track)
-
-import ApiObjects.Track (Track)
-import AppState (AppState (AppState), AppStateIO, accessToken, isPlaying, searchInput, _accessToken, _isPlaying, _searchInput, _searchResults, _showSearch, _trackName)
+import AppState
+  ( AppState (AppState),
+    AppStateIO,
+    accessToken,
+    isPlaying,
+    searchInput,
+    _accessToken,
+    _albumCover,
+    _albumName,
+    _artistNames,
+    _deviceId,
+    _isPlaying,
+    _searchInput,
+    _searchResults,
+    _showSearch,
+    _trackName,
+  )
 import qualified Authenticator as A
   ( getAccessToken,
     getAuthorizationCode,
     getRefreshToken,
   )
-import Control.Lens (assign, use, view, (^.))
+import Control.Lens (assign, use, (^.))
 import Control.Monad.IO.Class (MonadIO (liftIO))
+import Data.Maybe (fromJust)
+import GHC.Base (Alternative ((<|>)))
 import qualified Persistence as P
   ( loadRefreshToken,
     saveRefreshToken,
@@ -21,29 +38,37 @@ import qualified Persistence as P
 import Utils.ImageGenerator (generateRainbowImage)
 import Utils.StatusLenses (code)
 
+-- | placeholder that is displayed when no album cover is available
+defaultAlbumCover = generateRainbowImage
+
 search :: AppStateIO ()
 search = do
   input <- use searchInput
   liftIO $ putStrLn input
   at <- use accessToken
-  (status, response) <- liftIO $ searchTrack at input
+  (status, response) <- liftIO $ API.searchTrack at input
   --  case status of
   return ()
 
 initAppState :: IO AppState
-initAppState =
+
+-- | create a fresh AppState instance
+-- | this is called on app startup
+initAppState = do
+  accessToken <- requestAccessToken
   return
     AppState
-      { _accessToken = undefined,
+      { _accessToken = accessToken,
         _isPlaying = False,
-        _showSearch = True,
-        _searchInput = "",
+        _deviceId = Nothing,
         _trackName = Nothing,
+        _albumName = Nothing,
+        _artistNames = [],
+        _albumCover = defaultAlbumCover,
+        _showSearch = False,
+        _searchInput = "",
         _searchResults = []
       }
-
--- togglePlay :: AppStateIO ()
--- togglePlay = do assign isPlaying True
 
 play :: AppStateIO ()
 play = do
@@ -68,8 +93,8 @@ next = do
   at <- use accessToken
   status <- liftIO $ API.next at
   case (status ^. code) of
-    202 -> assign isPlaying True
-    204 -> assign isPlaying True
+    202 -> assign isPlaying True --TODO check Status Code
+    204 -> assign isPlaying True --TODO check Status Code
     _ -> return () -- TODO handle error
 
 previous :: AppStateIO ()
@@ -77,8 +102,8 @@ previous = do
   at <- use accessToken
   status <- liftIO $ API.pause at
   case (status ^. code) of
-    202 -> assign isPlaying True
-    204 -> assign isPlaying True
+    202 -> assign isPlaying True --TODO check Status Code
+    204 -> assign isPlaying True --TODO check Status Code
     _ -> return () -- TODO handle error
 
 requestAccessToken :: IO AccessToken
