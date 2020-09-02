@@ -10,15 +10,17 @@ import           Control.Monad             (void)
 import           Control.Monad.IO.Class    (MonadIO (liftIO))
 import           Control.Monad.Trans.State (StateT, evalStateT, execStateT, get)
 import           Data.Functor.Identity     (Identity, runIdentity)
+import           ApiObjects.Track    (Track)
+
 
 data AppState = AppState {
     _accessToken :: AccessToken,
     _isPlaying    :: Bool,
-    _showSearch   :: Bool,
+    _showSearch   :: Bool,   
     _searchInput  :: String,
     _trackName    :: Maybe String,
-    _searchResults:: []
-} deriving(Show, Eq)
+    _searchResults:: [Track]
+} deriving(Show)
 
 $(makeLenses ''AppState)
 

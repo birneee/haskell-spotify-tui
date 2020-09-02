@@ -3,11 +3,12 @@ module Controller (togglePlay, search, initAppState) where
 import AppState (accessToken, searchInput, AppStateIO, isPlaying, _showSearch, _searchInput, _trackName)
 import Control.Lens (view, use, assign)
 
-import           AppState     (AppState (AppState), AppStateIO, isPlaying,
-                               _accessToken, _isPlaying)
+import           AppState     (AppState (AppState), AppStateIO, isPlaying, _accessToken, _isPlaying, _searchResults)
 import           Control.Lens (assign)
 import Control.Monad.IO.Class (MonadIO(liftIO))
 import ApiClient (searchTrack)
+-- import ApiObjects.SearchResponse   (Track)
+import           ApiObjects.Track    (Track)
 
 search :: AppStateIO ()
 search = do
@@ -24,7 +25,8 @@ initAppState = return AppState {
         _isPlaying = False,
         _showSearch = True,
         _searchInput = "",
-        _trackName = Nothing
+        _trackName = Nothing,
+        _searchResults = []
     }
 
 togglePlay :: AppStateIO ()
