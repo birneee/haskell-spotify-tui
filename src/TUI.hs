@@ -6,7 +6,7 @@
 
 module TUI (tuiMain) where
 
-import qualified Controller as CONTROLLER (play, initAppState, search)
+import qualified Controller as CONTROLLER (mandelbrot, play, initAppState, search)
 import AppState (albumCover, AppState, execAppStateIO)
 import Widgets.ImageWidget (greedyRectangularImageWidget)
 import Data.Char
@@ -139,7 +139,8 @@ handleEvent a (VtyEvent (V.EvKey (V.KChar 'p') [])) = play a
 -- handleEvent a (VtyEvent (V.EvKey (V.KChar 's') [])) = pause a
 handleEvent a (VtyEvent (V.EvKey (V.KChar 'f') [])) = search a
 -- handleEvent a (VtyEvent (V.EvKey (V.KChar 'p') [])) = continue $ step a 
--- handleEvent a (VtyEvent (V.EvKey (V.KChar 'n') [])) = continue $ step a 
+-- handleEvent a (VtyEvent (V.EvKey (V.KChar 'n') [])) = continue $ step a
+handleEvent a (VtyEvent (V.EvKey (V.KChar 'm') [])) = (liftIO $ execAppStateIO CONTROLLER.mandelbrot a) >>= continue -- easter egg
 handleEvent a (VtyEvent (V.EvKey (V.KChar 'q') [])) = halt a
 handleEvent a _ = continue a
 
