@@ -68,7 +68,7 @@ import qualified Brick.Widgets.List as L
 import Control.Lens
 import Control.Monad (void)
 import Control.Monad.IO.Class (MonadIO (liftIO))
-import qualified Controller as CONTROLLER (initAppState, search, togglePlay)
+import qualified Controller as CONTROLLER (initAppState, next, pause, play, previous, search)
 import Data.Char
 import qualified Data.Vector as Vec
 import qualified Graphics.Vty as V
@@ -81,8 +81,8 @@ data Tick = Tick
 
 type Name = ()
 
-data Name1 = TextBox
-  deriving (Show, Ord, Eq)
+-- data Name1 = TextBox
+--   deriving (Show, Ord, Eq)
 
 data UIState = UIState
   { _edit :: E.Editor String Name, -- Search input
@@ -176,41 +176,35 @@ handleEvent ui (VtyEvent ev) | ui ^. appState ^. showSearch = continue =<< T.han
 handleEvent ui (VtyEvent (V.EvKey (V.KChar ' ') []))
   | ui ^. appState ^. isPlaying = setPlayerModus "play" ui
   | otherwise = setPlayerModus "pause" ui
-handleEvent ui (VtyEvent (V.EvKey (V.KChar 'n') [])) = next ui
-handleEvent ui (VtyEvent (V.EvKey (V.KChar 'b') [])) = previous ui
+handleEvent ui (VtyEvent (V.EvKey (V.KChar 'n') [])) = setPlayerModus "next" ui
+handleEvent ui (VtyEvent (V.EvKey (V.KChar 'b') [])) = setPlayerModus "previous" ui
 handleEvent ui _ = continue ui
-
--- Instead of changing AppState, it should start the search function in controller
--- search :: UIState -> EventM Name (Next UIState)
--- search ui =
---   let a = ui ^. appState
---       u = execAppStateIO CONTROLLER.search a
---       ui . appState = u
---    in continue ui
-
--- play :: UIState -> EventM Name (Next UIState)
--- play ui =
---   let a = ui ^. appState
---       u = execAppStateIO CONTROLLER.togglePlay a
---       ui . appState = u
---    in continue ui
-
-next :: UIState -> EventM Name (Next UIState)
-next = undefined
-
-previous :: UIState -> EventM Name (Next UIState)
-previous = undefined
 
 listDrawElement b a = str a
 
 setPlayerModus :: String -> UIState -> EventM Name (Next UIState)
 setPlayerModus "play" ui =
   let a = ui ^. appState
-      u = execAppStateIO CONTROLLER.togglePlay a
+      u = execAppStateIO CONTROLLER.play a
       ui . appState = u
    in continue ui
 setPlayerModus "search" ui =
   let a = ui ^. appState
       u = execAppStateIO CONTROLLER.search a
+      ui . appState = u
+   in continue ui
+setPlayerModus "pause" ui =
+  let a = ui ^. appState
+      u = execAppStateIO CONTROLLER.pause a
+      ui . appState = u
+   in continue ui
+setPlayerModus "next" ui =
+  let a = ui ^. appState
+      u = execAppStateIO CONTROLLER.next a
+      ui . appState = u
+   in continue ui
+setPlayerModus "previous" ui =
+  let a = ui ^. appState
+      u = execAppStateIO CONTROLLER.previous a
       ui . appState = u
    in continue ui

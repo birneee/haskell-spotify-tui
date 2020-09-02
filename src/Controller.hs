@@ -1,4 +1,4 @@
-module Controller (Controller.play, search, initAppState) where
+module Controller (Controller.play, Controller.pause, search, Controller.next, previous, initAppState) where
 
 import ApiClient as API (next, pause, play, searchTrack)
 import ApiObjects.AccessToken (AccessToken)
