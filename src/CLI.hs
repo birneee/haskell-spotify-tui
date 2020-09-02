@@ -16,8 +16,8 @@ import           ApiObjects.Track           (Track, Uri, album, artists,
 import           Control.Applicative        (Alternative (empty, (<|>)))
 import           Control.Lens               ((^.), _1)
 import           Control.Monad              (void)
+import           Controller                 (requestAccessToken)
 import           Data.List                  (intercalate)
-import           Persistence                (loadAccessToken)
 import           System.Environment         (getArgs)
 import           System.Exit                (die, exitSuccess)
 import           Text.Read                  (readMaybe)
@@ -154,7 +154,6 @@ invalidOptions = do
         \Try 'haskell-spotify-tui --help' for more information."
 
 tui :: IO ()
--- |TODO launch tui
 tui = tuiMain
 
 help :: IO ()
@@ -181,9 +180,8 @@ help = putStrLn usageText
 
 info :: IO ()
 -- |Get info about currently playing track
--- |TODO use persistence to get controller
 info = do
-    accessToken <- loadAccessToken
+    accessToken <- requestAccessToken
     (status, response) <- API.getPlayer accessToken
     case (status ^. code, response) of
         (200, Just response') -> printInfo response'
@@ -211,7 +209,7 @@ info = do
 
 devices :: IO ()
 devices = do
-    accessToken <- loadAccessToken
+    accessToken <- requestAccessToken
     (status, response) <- API.getAvailableDevices accessToken
     case (status ^. code, response) of
         (200, Just response') -> printDevices (response' ^. DR.devices) >> exitSuccess
@@ -229,9 +227,8 @@ devices = do
             putStrLn $ "Device ID\t" ++ (device ^. deviceId) ++ "\n"
 
 play :: IO ()
--- |TODO use persistence to get controller
 play = do
-    accessToken <- loadAccessToken
+    accessToken <- requestAccessToken
     status <- API.play accessToken
     case (status ^. code) of
         code@_ | code == 202 || code == 204 -> putStrLn "▶ Started Playback" >> exitSuccess
@@ -240,9 +237,8 @@ play = do
         code@_ -> exitWithUnknownHttpStatus code
 
 playTrack :: Uri -> IO ()
--- |TODO use persistence to get controller
 playTrack uri = do
-    accessToken <- loadAccessToken
+    accessToken <- requestAccessToken
     status <- API.playTrack accessToken uri
     case (status ^. code) of
         code@_ | code == 202 || code == 204 -> putStrLn "▶ Playing Song" >> exitSuccess
@@ -250,16 +246,15 @@ playTrack uri = do
 
 playOnDevice :: DeviceId -> IO ()
 playOnDevice deviceId = do
-    accessToken <- loadAccessToken
+    accessToken <- requestAccessToken
     status <- API.setPlayer accessToken deviceId
     case (status ^. code) of
         code@_ | code == 202 || code == 204 -> putStrLn "📾  Set Device" >> exitSuccess
         code@_ -> exitWithUnknownHttpStatus code
 
 pause :: IO ()
--- |TODO use persistence to get controller
 pause = do
-    accessToken <- loadAccessToken
+    accessToken <- requestAccessToken
     status <- API.pause accessToken
     case (status ^. code) of
         code@_ | code == 202 || code == 204 -> putStrLn "⏸ Paused Playback" >> exitSuccess
@@ -268,9 +263,8 @@ pause = do
         code@_ -> exitWithUnknownHttpStatus code
 
 next :: IO ()
--- |TODO use persistence to get controller
 next = do
-    accessToken <- loadAccessToken
+    accessToken <- requestAccessToken
     status <- API.next accessToken
     case (status ^. code) of
         204    -> putStrLn "⏭️ Skipped to next track" >> exitSuccess
@@ -278,9 +272,8 @@ next = do
         code@_ -> exitWithUnknownHttpStatus code
 
 previous :: IO ()
--- |TODO use persistence to get controller
 previous = do
-    accessToken <- loadAccessToken
+    accessToken <- requestAccessToken
     status <- API.previous accessToken
     case (status ^. code) of
         204    -> putStrLn "⏮️ Skipped to previous track" >> exitSuccess
@@ -289,7 +282,7 @@ previous = do
 
 getVolume :: IO ()
 getVolume = do
-    accessToken <- loadAccessToken
+    accessToken <- requestAccessToken
     (status, response) <- API.getPlayer accessToken
     case (status ^. code, response) of
         (200, Just response') -> printVolume response'
@@ -303,7 +296,7 @@ getVolume = do
 
 setVolume :: Int -> IO ()
 setVolume value = do
-    accessToken <- loadAccessToken
+    accessToken <- requestAccessToken
     status <- API.setVolume accessToken value
     case (status ^. code) of
         204 -> putStrLn ("🎚️ Set volume to " ++ (show value) ++ "%") >> exitSuccess

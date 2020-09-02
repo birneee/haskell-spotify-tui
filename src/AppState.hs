@@ -4,21 +4,22 @@
 module AppState where
 
 import           ApiObjects.AccessToken    (AccessToken)
-import           Codec.Picture             (Image, PixelRGB8)
-import           Control.Lens              (assign, makeLenses, modifying, use,
-                                            view, (%=), (.=))
-import           Control.Monad             (void)
-import           Control.Monad.IO.Class    (MonadIO (liftIO))
-import           Control.Monad.Trans.State (StateT, evalStateT, execStateT, get)
-import           Data.Functor.Identity     (Identity, runIdentity)
+import           ApiObjects.Device         (DeviceId)
+import           Codec.Picture.Types       (Image, PixelRGB8)
+import           Control.Lens              (makeLenses)
+import           Control.Monad.Trans.State (StateT, evalStateT, execStateT)
+import           Data.Functor.Identity     (runIdentity)
 
 data AppState = AppState {
-    _accessToken :: Maybe AccessToken,
+    _accessToken :: AccessToken,
     _isPlaying   :: Bool,
-    _showSearch  :: Bool,
-    _searchInput :: Maybe String,
+    _deviceId    :: Maybe DeviceId,
     _trackName   :: Maybe String,
-    _albumCover  :: Image PixelRGB8
+    _albumName   :: Maybe String,
+    _artistNames :: [String],
+    _albumCover  :: Image PixelRGB8,
+    _showSearch  :: Bool,
+    _searchInput :: String
 } deriving(Show, Eq)
 
 instance Show (Image a) where
