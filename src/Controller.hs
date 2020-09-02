@@ -65,15 +65,17 @@ initAppState = do
         _albumName = Nothing,
         _artistNames = [],
         _albumCover = defaultAlbumCover,
-        _showSearch = False,
+        _showSearch = True,
         _searchInput = "",
         _searchResults = []
       }
 
 play :: AppStateIO ()
 play = do
+  liftIO $ putStrLn "Test"
   at <- use accessToken
   status <- liftIO $ API.play at
+  liftIO $ putStrLn $ show status
   case (status ^. code) of
     202 -> assign isPlaying True
     204 -> assign isPlaying True
