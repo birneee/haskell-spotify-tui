@@ -91,6 +91,7 @@ data UIState = UIState
 
 makeLenses ''UIState
 
+--TODO: Blink and Nebenlaeufigkeit
 theMap :: AttrMap
 theMap =
   attrMap
