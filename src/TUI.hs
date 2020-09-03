@@ -49,6 +49,8 @@ import qualified Graphics.Vty               as V
 import           Widgets.ImageWidget        (greedyRectangularImageWidget)
 import ApiObjects.Album as ALBUM (albumName)
 import ApiObjects.Artist as ARTIST (artistName)
+import Brick.Widgets.List (GenericList)
+import Data.Vector (Vector)
 
 data State = String
 
@@ -139,16 +141,27 @@ data SearchResultListItem = SearchResultListItem {_trackName   :: String,
                                                   _trackUri    :: Uri}
 
 drawSearch :: UIState -> Widget Name
-drawSearch st = 
-  str "Input " <+> (vLimit 1 $ E.renderEditor (str . unlines) True (st ^. edit))  --TODO: call drawResult <=>
+drawSearch ui = 
+  str "Input " <+> (vLimit 1 $ E.renderEditor (str . unlines) True (ui ^. edit)) <=> drawResult ui  --TODO: call drawResult <=>
                 -- let tracks = ui ^. appState ^. searchResults
     --  in B.borderWithLabel (str "Result") (L.renderList listDrawElement False (L.list "list" (Vec.fromList $ id) 1))
+
 
 trackToSearchResultListItem :: Track -> SearchResultListItem
 trackToSearchResultListItem t = SearchResultListItem {_trackName = t^.TRACK.trackName,
                                                       _albumName = t^.album^.ALBUM.albumName,
                                                       _artistNames = map (\a -> a^.ARTIST.artistName) (t^.artists),
                                                       _trackUri = t^.TRACK.uri}
+
+drawResult :: UIState -> Widget Name
+drawResult ui = let genericList = makeGenericList ui
+                in L.renderList listDrawElement True genericList 
+
+listDrawElement:: Bool->e-> Widget Name
+listDrawElement b ui = str "Test"
+
+makeGenericList :: UIState -> L.List () Track
+makeGenericList ui =  L.list () (Vec.fromList $ ui^.appState^.searchResults) 1
 
 drawPlay = withAttr playAttr $ str "Play"
 
@@ -175,7 +188,7 @@ handleEvent ui (VtyEvent (V.EvKey (V.KChar 'n') [])) = setPlayerModus "next" ui
 handleEvent ui (VtyEvent (V.EvKey (V.KChar 'b') [])) = setPlayerModus "previous" ui
 handleEvent ui _ = continue ui
 
-listDrawElement b a = str a
+
 
 setPlayerModus :: String -> UIState -> EventM Name (Next UIState)
 setPlayerModus "play" ui =
