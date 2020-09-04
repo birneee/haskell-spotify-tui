@@ -1,19 +1,19 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module ApiObjects.DevicesResponse where
 
-import           ApiObjects.Device (Device)
-import           Control.Lens      (makeLenses)
-import           Data.Aeson        (FromJSON, parseJSON, (.:))
-import           Data.Aeson.Types  (Value (Object))
+import ApiObjects.Device (Device)
+import Control.Lens (makeLenses)
+import Data.Aeson (FromJSON, parseJSON, withObject, (.:))
 
 data DevicesResponse = DevicesResponse
-  {   _devices :: [Device]
-  } deriving (Show)
+  { _devices :: [Device]
+  }
+  deriving (Show)
 
 instance FromJSON DevicesResponse where
-  parseJSON (Object v) =
+  parseJSON = withObject "DevicesResponse" $ \v ->
     DevicesResponse
       <$> (v .: "devices")
 
