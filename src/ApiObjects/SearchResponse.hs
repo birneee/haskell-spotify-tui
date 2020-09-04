@@ -1,26 +1,27 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module ApiObjects.SearchResponse where
 
-import           ApiObjects.Device   (Device)
-import           ApiObjects.Track    (Track)
-import           Control.Applicative (optional)
-import           Control.Lens        (makeLenses)
-import           Data.Aeson          (FromJSON, parseJSON, (.:))
-import           Data.Aeson.Types    (Value (Object))
+import ApiObjects.Device (Device)
+import ApiObjects.Track (Track)
+import Control.Applicative (optional)
+import Control.Lens (makeLenses)
+import Data.Aeson (FromJSON, parseJSON, (.:))
+import Data.Aeson.Types (Value (Object))
 
 data SearchResponse = SearchResponse
-  {
-    _tracks :: Maybe Tracks
-    -- _artists :: Maybe Artists
-    -- _albums :: Maybe Albums
-    -- _playlists :: Maybe Playlists
-  } deriving (Show)
+  { _tracks :: Maybe Tracks
+  -- _artists :: Maybe Artists
+  -- _albums :: Maybe Albums
+  -- _playlists :: Maybe Playlists
+  }
+  deriving (Show)
 
 data Tracks = Tracks
   { _items :: [Track]
-  } deriving (Show)
+  }
+  deriving (Show)
 
 instance FromJSON SearchResponse where
   parseJSON (Object v) =
@@ -33,3 +34,4 @@ instance FromJSON Tracks where
       <$> (v .: "items")
 
 $(makeLenses ''SearchResponse)
+$(makeLenses ''Tracks)

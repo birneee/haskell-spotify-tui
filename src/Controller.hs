@@ -5,12 +5,14 @@ module Controller (initAppState, play, pause, next, previous, search, requestAcc
 import qualified ApiClient as API (next, pause, play, searchTrack)
 import ApiObjects.AccessToken (AccessToken)
 import ApiObjects.RefreshToken (RefreshToken)
+import ApiObjects.SearchResponse (SearchResponse (SearchResponse), items)
 import AppState
   ( AppState (AppState),
     AppStateIO,
     accessToken,
     isPlaying,
     searchInput,
+    searchResults,
     _accessToken,
     _albumCover,
     _albumName,
@@ -27,7 +29,7 @@ import qualified Authenticator as A
     getAuthorizationCode,
     getRefreshToken,
   )
-import Control.Lens (assign, use, (^.))
+import Control.Lens (assign, use, (.=), (^.))
 import Control.Monad.IO.Class (MonadIO (liftIO))
 import Data.Maybe (fromJust)
 import GHC.Base (Alternative ((<|>)))
@@ -44,11 +46,11 @@ defaultAlbumCover = generateRainbowImage
 search :: AppStateIO ()
 search = do
   input <- use searchInput
-  liftIO $ putStrLn input
   at <- use accessToken
   (status, response) <- liftIO $ API.searchTrack at input
-  --  case status of
-  return ()
+  case (status ^. code, response) of
+    (200, Just (SearchResponse (Just tracks))) -> searchResults .= tracks ^. items
+    _ -> return ()
 
 initAppState :: IO AppState
 

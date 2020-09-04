@@ -6,10 +6,10 @@
 
 module TUI (tuiMain) where
 
-import ApiObjects.Album as ALBUM (albumName)
+import qualified ApiObjects.Album as ALBUM (albumName)
 import ApiObjects.Artist as ARTIST (artistName)
 import ApiObjects.Track (Track, Uri, album, artists, trackId)
-import ApiObjects.Track as TRACK (trackName, uri)
+import qualified ApiObjects.Track as TRACK (trackName, uri)
 import AppState
   ( AppState,
     albumCover,
@@ -105,17 +105,31 @@ data Event = Event
 
 data Tick = Tick
 
-type Name = ()
+-- type Name = ()
+
+data Name
+  = SearchEdit
+  | ResultList
+  deriving (Ord, Show, Eq)
 
 -- data Name1 = TextBox
 --   deriving (Show, Ord, Eq)
+data SearchResultListItem = SearchResultListItem
+  { _trackName :: String,
+    _albumName :: String,
+    _artistNames :: [String],
+    _trackUri :: Uri
+  }
+
+(makeLenses ''SearchResultListItem)
 
 data UIState = UIState
   { _edit :: E.Editor String Name, -- Search input
-    _appState :: AppState
+    _appState :: AppState,
+    _results :: L.List Name SearchResultListItem
   }
 
-makeLenses ''UIState
+(makeLenses ''UIState)
 
 --TODO: Blink and Nebenlaeufigkeit
 theMap :: AttrMap
@@ -156,7 +170,7 @@ tuiMain = do
 newUIState :: IO UIState
 newUIState = do
   appState <- CONTROLLER.initAppState
-  return $ UIState (E.editor () Nothing "") appState
+  return $ UIState (E.editor SearchEdit Nothing "") appState (L.list ResultList (Vec.fromList []) 1)
 
 drawUI :: UIState -> [Widget Name]
 drawUI ui = [C.center $ drawMain ui]
@@ -182,16 +196,16 @@ drawAlbumCover ui = do
 drawFunction :: UIState -> Widget Name
 drawFunction ui = padRight (Pad 2) drawPrevious <+> padRight (Pad 2) drawStop <+> padRight (Pad 2) (drawPlay ui) <+> padRight (Pad 2) drawNext
 
-data SearchResultListItem = SearchResultListItem
-  { _trackName :: String,
-    _albumName :: String,
-    _artistNames :: [String],
-    _trackUri :: Uri
-  }
+-- data SearchResultListItem = SearchResultListItem
+--   { _trackName :: String,
+--     _albumName :: String,
+--     _artistNames :: [String],
+--     _trackUri :: Uri
+--   }
 
 drawSearch :: UIState -> Widget Name
 drawSearch ui =
-  str "Input " <+> (vLimit 1 $ E.renderEditor (str . unlines) True (ui ^. edit)) -- <=> drawResult ui  --TODO: call drawResult <=>
+  str "Input " <+> (vLimit 1 $ E.renderEditor (str . unlines) True (ui ^. edit)) <=> drawResult ui --TODO: call drawResult <=>
   -- let tracks = ui ^. appState ^. searchResults
   --  in B.borderWithLabel (str "Result") (L.renderList listDrawElement False (L.list "list" (Vec.fromList $ id) 1))
 
@@ -205,15 +219,15 @@ trackToSearchResultListItem t =
     }
 
 drawResult :: UIState -> Widget Name
-drawResult ui =
-  let genericList = makeGenericList ui
-   in L.renderList listDrawElement True genericList
+drawResult ui = do
+  let genericList = ui ^. results
+  L.renderList listDrawElement True genericList
 
-listDrawElement :: Bool -> e -> Widget ()
-listDrawElement b ui = C.hCenter $ str "Test"
+listDrawElement :: Bool -> SearchResultListItem -> Widget Name
+listDrawElement b item = C.hCenter $ str $ item ^. trackName
 
-makeGenericList :: UIState -> GenericList Name Vector Track --L.List Name Char
-makeGenericList ui = L.list () (Vec.fromList $ ui ^. appState ^. searchResults) 1
+-- makeGenericList :: UIState -> GenericList Name Vector Track --L.List Name Char
+-- makeGenericList ui = L.list () (Vec.fromList $ ui ^. appState ^. searchResults) 1
 
 drawPlay :: UIState -> Widget Name
 drawPlay ui
@@ -236,10 +250,7 @@ handleEvent ui (VtyEvent (V.EvKey (V.KChar ' ') []))
 handleEvent ui (VtyEvent (V.EvKey (V.KEsc) [])) = halt ui
 handleEvent ui (VtyEvent (V.EvKey (V.KChar 'f') [V.MMeta])) = continue $ over (appState . showSearch) not ui
 handleEvent ui (VtyEvent (V.EvKey V.KEnter [])) | ui ^. appState ^. showSearch = do
-  let content = head $ E.getEditContents $ ui ^. edit
-  liftIO $ putStrLn content
-  let ui' = ui & (appState . searchInput) .~ ""
-  search ui'
+  search ui
 handleEvent ui (VtyEvent ev) | ui ^. appState ^. showSearch = continue =<< T.handleEventLensed ui edit E.handleEditorEvent ev -- for typing input
 handleEvent ui (VtyEvent (V.EvKey (V.KChar 'n') [])) = next ui
 handleEvent ui (VtyEvent (V.EvKey (V.KChar 'b') [])) = previous ui
@@ -280,11 +291,16 @@ play ui = do
   continue $ ui & appState .~ a'
 
 search :: UIState -> EventM Name (Next UIState)
-search ui =
-  let a = ui ^. appState
-      u = execAppStateIO CONTROLLER.search a
-      ui . appState = u
-   in continue ui
+search ui = do
+  let content = head $ E.getEditContents $ ui ^. edit
+  -- liftIO $ putStrLn content
+  let ui' = ui & (appState . searchInput) .~ content
+  as <- liftIO $ execAppStateIO CONTROLLER.search (ui' ^. appState) -- newAppState
+  let ui'' = ui' & appState .~ as
+  let items = trackToSearchResultListItem <$> as ^. searchResults
+  let ui''' = ui'' & results .~ L.list ResultList (Vec.fromList items) 1
+  -- liftIO $ putStrLn $ show as
+  continue ui'''
 
 pause :: UIState -> EventM Name (Next UIState)
 pause ui = do
@@ -307,4 +323,4 @@ previous ui = do
   liftIO $ putStrLn $ show a'
   continue $ ui & appState .~ a'
 
-$(makeLenses ''SearchResultListItem)
+-- (makeLenses ''SearchResultListItem)
