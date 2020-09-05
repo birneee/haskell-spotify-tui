@@ -29,6 +29,7 @@ haskell-spotify-tui
 - [http-client](https://hackage.haskell.org/package/http-client)
 - [JuicyPixels](https://hackage.haskell.org/package/JuicyPixels)
 - [lens](https://hackage.haskell.org/package/lens)
+- [monad-par](https://hackage.haskell.org/package/monad-par)
 - [template-haskell](https://hackage.haskell.org/package/template-haskell)
 - [transformers](https://hackage.haskell.org/package/transformers)
 - [warp](https://hackage.haskell.org/package/warp)
