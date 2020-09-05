@@ -1,12 +1,11 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module ApiObjects.AccessTokenResponse where
 
-import           Control.Lens        (makeLenses)
-import           Data.Aeson          (FromJSON, parseJSON, (.:))
-import           Data.Aeson.Types    (Value (Object))
-import           ApiObjects.AccessToken
+import ApiObjects.AccessToken (AccessToken (..))
+import Control.Lens (makeLenses)
+import Data.Aeson (FromJSON, parseJSON, withObject, (.:))
 
 data AccessTokenResponse = AccessTokenResponse
   { _accessToken :: AccessToken
@@ -14,7 +13,7 @@ data AccessTokenResponse = AccessTokenResponse
   deriving (Show)
 
 instance FromJSON AccessTokenResponse where
-  parseJSON (Object v) =
+  parseJSON = withObject "AccessTokenResponse" $ \v ->
     AccessTokenResponse
       <$> (AccessToken <$> v .: "access_token")
 
