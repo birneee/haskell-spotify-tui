@@ -1,21 +1,20 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module ApiObjects.Artist where
 
-import           Control.Lens (makeLenses)
-import           Data.Aeson   (FromJSON, Value (Object), parseJSON, (.:))
+import Control.Lens (makeLenses)
+import Data.Aeson (FromJSON, parseJSON, withObject, (.:))
 
--- |source https://developer.spotify.com/documentation/web-api/reference/object-model/#artist-object-simplified
+-- | source https://developer.spotify.com/documentation/web-api/reference/object-model/#artist-object-simplified
 data Artist = Artist
-  {
-    _artistId   :: String,
+  { _artistId :: String,
     _artistName :: String
   }
   deriving (Show)
 
 instance FromJSON Artist where
-  parseJSON (Object v) =
+  parseJSON = withObject "Artist" $ \v ->
     Artist
       <$> (v .: "id")
       <*> (v .: "name")
