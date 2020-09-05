@@ -1,21 +1,21 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module ApiObjects.RefreshTokenResponse where
 
-import           Control.Lens
-import           Data.Aeson
-import           ApiObjects.AccessToken
-import           ApiObjects.RefreshToken
+import ApiObjects.AccessToken (AccessToken (..))
+import ApiObjects.RefreshToken (RefreshToken (..))
+import Control.Lens (makeLenses)
+import Data.Aeson (FromJSON (parseJSON), withObject, (.:))
 
 data RefreshTokenResponse = RefreshTokenResponse
-  { _accessToken  :: AccessToken,
+  { _accessToken :: AccessToken,
     _refreshToken :: RefreshToken
   }
   deriving (Show)
 
 instance FromJSON RefreshTokenResponse where
-  parseJSON (Object v) =
+  parseJSON = withObject "RefreshTokenResponse" $ \v ->
     RefreshTokenResponse
       <$> (AccessToken <$> v .: "access_token")
       <*> (RefreshToken <$> v .: "refresh_token")

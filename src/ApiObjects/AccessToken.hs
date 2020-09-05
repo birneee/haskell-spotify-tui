@@ -2,9 +2,9 @@
 
 module ApiObjects.AccessToken where
 
-import           GHC.Exts                  (IsString (..))
-import           Network.HTTP.Types.Header (Header)
-import           Utils.StringUtils
+import GHC.Exts (IsString (..))
+import Network.HTTP.Types.Header (Header)
+import Utils.StringUtils (Packable (..), Unpackable (..))
 
 newtype AccessToken = AccessToken String
   deriving (Show, Eq)
