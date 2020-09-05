@@ -1,25 +1,26 @@
 -- |TODO refresh access token if expired
 -- |TODO request new refresh token if not valid
-module Controller (initAppState, play, search, requestAccessToken) where
+module Controller (initAppState, play, search, requestAccessToken, mandelbrot) where
 
 import qualified ApiClient               as API (pause, play)
 import           ApiObjects.AccessToken  (AccessToken)
 import           ApiObjects.RefreshToken (RefreshToken)
 import           AppState                (AppState (AppState), AppStateIO,
-                                          accessToken, isPlaying, _accessToken,
-                                          _albumCover, _albumName, _artistNames,
-                                          _deviceId, _isPlaying, _searchInput,
-                                          _showSearch, _trackName)
+                                          accessToken, albumCover, isPlaying,
+                                          _accessToken, _albumCover, _albumName,
+                                          _artistNames, _deviceId, _isPlaying,
+                                          _searchInput, _showSearch, _trackName)
 import qualified Authenticator           as A (getAccessToken,
                                                getAuthorizationCode,
                                                getRefreshToken)
-import           Control.Lens            (assign, use, (^.))
+import           Control.Lens            (assign, use, (.=), (^.))
 import           Control.Monad.IO.Class  (MonadIO (liftIO))
 import           Data.Maybe              (fromJust)
 import           GHC.Base                (Alternative ((<|>)))
 import qualified Persistence             as P (loadRefreshToken,
                                                saveRefreshToken)
-import           Utils.ImageGenerator    (generateRainbowImage)
+import           Utils.ImageGenerator    (generateMandelbrotImage,
+                                          generateRainbowImage)
 import           Utils.StatusLenses      (code)
 
 -- |placeholder that is displayed when no album cover is available
@@ -62,6 +63,13 @@ pause = do
         202 -> assign isPlaying False
         204 -> assign isPlaying False
         _   -> return () -- TODO handle error
+
+mandelbrot :: AppStateIO ()
+mandelbrot = do
+    ac <- use albumCover
+    if ac == defaultAlbumCover
+        then albumCover .= generateMandelbrotImage 256 256
+        else albumCover .= defaultAlbumCover
 
 requestAccessToken :: IO AccessToken
 -- |Request new access token on Spotify API
