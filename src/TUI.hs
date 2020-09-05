@@ -6,8 +6,8 @@
 
 module TUI (tuiMain) where
 
-import qualified Controller as CONTROLLER (play, initAppState, search)
-import AppState (albumCover, AppState, execAppStateIO)
+import qualified Controller as CONTROLLER (updateCurrentTrackInfo, play, initAppState, search)
+import AppState (artistNames, albumName, trackName, AppStateIO, albumCover, AppState, execAppStateIO)
 import Widgets.ImageWidget (greedyRectangularImageWidget)
 import Data.Char
 import Control.Lens
@@ -56,6 +56,8 @@ import qualified Brick.Widgets.Core as C
 import Brick.Types (Extent)
 import Brick.Types (Location)
 import Control.Monad.IO.Class (MonadIO(liftIO))
+import Relude.Monad ((?:))
+import Data.List (intercalate)
 
 data State = String
 data Event = Event
@@ -107,7 +109,11 @@ drawMusic :: AppState -> Widget n
 drawMusic a = withBorderStyle BS.unicode $ B.borderWithLabel (str "FFP Music Player") $ (C.center (drawAlbumCover a) <+> B.vBorder <+> drawInfo a)
 
 drawInfo :: AppState -> Widget n
-drawInfo a = vBox [  C.center (str"Title"),  C.center (str"Song"),  C.center(str"Artist"), C.center(str"Review")]
+drawInfo a = C.center $ C.padLeft (Pad 1) $ vBox [
+  str $ "Track: " ++ (a ^. trackName ?: ""),
+  str $ "Artists: " ++ intercalate ", " (a ^. artistNames),
+  str $ "Album: " ++ (a ^. albumName ?: ""),
+  str $ "Review: "]
 
 drawAlbumCover:: AppState -> Widget n
 drawAlbumCover state = do
@@ -140,6 +146,7 @@ handleEvent a (VtyEvent (V.EvKey (V.KChar 'p') [])) = play a
 handleEvent a (VtyEvent (V.EvKey (V.KChar 'f') [])) = search a
 -- handleEvent a (VtyEvent (V.EvKey (V.KChar 'p') [])) = continue $ step a 
 -- handleEvent a (VtyEvent (V.EvKey (V.KChar 'n') [])) = continue $ step a 
+handleEvent a (VtyEvent (V.EvKey (V.KChar 'u') [])) = (liftIO $ execAppStateIO CONTROLLER.updateCurrentTrackInfo a) >>= continue
 handleEvent a (VtyEvent (V.EvKey (V.KChar 'q') [])) = halt a
 handleEvent a _ = continue a
 
