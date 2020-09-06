@@ -12,11 +12,13 @@ import ApiObjects.Track (Track, Uri, album, artists, trackId)
 import qualified ApiObjects.Track as TRACK (trackName, uri)
 import AppState
   ( AppState,
+    AppStateIO,
     albumCover,
     execAppStateIO,
     isPlaying,
     searchInput,
     searchResults,
+    selectedSearchResultIndex,
     showSearch,
   )
 import Brick
@@ -81,7 +83,7 @@ import Brick.Widgets.Core
   )
 import qualified Brick.Widgets.Core as C
 import qualified Brick.Widgets.Edit as E
-import Brick.Widgets.List (GenericList)
+import Brick.Widgets.List (GenericList, listSelectedL)
 import qualified Brick.Widgets.List as L
 import Control.Lens
 import Control.Monad (void)
@@ -91,6 +93,7 @@ import qualified Controller as CONTROLLER
     next,
     pause,
     play,
+    playSelectedTrack,
     previous,
     search,
   )
@@ -114,8 +117,6 @@ data Name
   | VPResultList
   deriving (Ord, Show, Eq)
 
--- data Name1 = TextBox
---   deriving (Show, Ord, Eq)
 data SearchResultListItem = SearchResultListItem
   { _trackName :: String,
     _albumName :: String,
@@ -216,13 +217,14 @@ trackToSearchResultListItem t =
 drawResult :: UIState -> Widget Name
 drawResult ui = do
   let genericList = ui ^. results
+
   L.renderList listDrawElement True genericList
 
 listDrawElement :: Bool -> SearchResultListItem -> Widget Name
 -- listDrawElement b item = C.hCenter $ str $ item ^. trackName
-listDrawElement b item =
+listDrawElement sel item =
   let selStr it =
-        if b
+        if sel
           then withAttr selectedAttr (it)
           else it --TDO: Check logic
    in selStr $ str (item ^. trackName)
@@ -240,14 +242,26 @@ drawPrevious = withAttr previousAttr $ str "Previous"
 
 drawHelp = str $ "'p':PLAY, 's':STOP, 'p':BACK, 'n':NEXT, 'esc':QUIT"
 
+vpScroll :: M.ViewportScroll Name
+vpScroll = M.viewportScroll VPResultList
+
 handleEvent :: UIState -> BrickEvent Name () -> EventM Name (Next UIState)
+handleEvent ui (VtyEvent (V.EvKey V.KDown [])) = M.continue (ui & results %~ (\l -> L.listMoveDown l))
+handleEvent ui (VtyEvent (V.EvKey V.KUp [])) = M.continue (ui & results %~ (\l -> L.listMoveUp l))
 handleEvent ui (VtyEvent (V.EvKey (V.KChar ' ') []))
   | ui ^. appState ^. isPlaying = pause ui
   | otherwise = play ui
 handleEvent ui (VtyEvent (V.EvKey (V.KEsc) [])) = halt ui
 handleEvent ui (VtyEvent (V.EvKey (V.KChar 'f') [V.MMeta])) = continue $ over (appState . showSearch) not ui
-handleEvent ui (VtyEvent (V.EvKey V.KEnter [])) | ui ^. appState ^. showSearch = do
-  search ui
+handleEvent ui (VtyEvent (V.EvKey V.KEnter []))
+  | ui ^. (appState . searchInput) == (head $ E.getEditContents $ ui ^. edit) = do
+    let index = ui ^. (results . listSelectedL)
+    case index of
+      Just x -> do
+        let ui' = ui & (appState . selectedSearchResultIndex) .~ x
+        exec CONTROLLER.playSelectedTrack ui'
+      Nothing -> continue ui
+  | ui ^. (appState . showSearch) = do search ui
 handleEvent ui (VtyEvent ev) | ui ^. appState ^. showSearch = continue =<< T.handleEventLensed ui edit E.handleEditorEvent ev -- for typing input
 handleEvent ui (VtyEvent (V.EvKey (V.KChar 'n') [])) = next ui
 handleEvent ui (VtyEvent (V.EvKey (V.KChar 'b') [])) = previous ui
@@ -303,21 +317,28 @@ pause :: UIState -> EventM Name (Next UIState)
 pause ui = do
   let a = ui ^. appState
   a' <- liftIO $ execAppStateIO CONTROLLER.pause a
-  liftIO $ putStrLn $ show a'
+  -- liftIO $ putStrLn $ show a'
   continue $ ui & appState .~ a'
 
 next :: UIState -> EventM Name (Next UIState)
 next ui = do
   let a = ui ^. appState
   a' <- liftIO $ execAppStateIO CONTROLLER.next a
-  liftIO $ putStrLn $ show a'
+  -- liftIO $ putStrLn $ show a'
   continue $ ui & appState .~ a'
 
 previous :: UIState -> EventM Name (Next UIState)
 previous ui = do
   let a = ui ^. appState
   a' <- liftIO $ execAppStateIO CONTROLLER.previous a
-  liftIO $ putStrLn $ show a'
+  -- liftIO $ putStrLn $ show a'
   continue $ ui & appState .~ a'
 
--- (makeLenses ''SearchResultListItem)
+eval :: AppStateIO a -> UIState -> EventM Name UIState
+eval f uiState = do
+  let as = uiState ^. appState
+  as' <- liftIO $ execAppStateIO f as
+  return $ uiState & appState .~ as'
+
+exec :: AppStateIO a -> UIState -> EventM Name (Next UIState)
+exec f uiState = eval f uiState >>= continue

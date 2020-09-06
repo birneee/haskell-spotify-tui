@@ -31,7 +31,8 @@ data AppState = AppState
     _albumCover :: Image PixelRGB8,
     _showSearch :: Bool,
     _searchInput :: String,
-    _searchResults :: [Track]
+    _searchResults :: [Track],
+    _selectedSearchResultIndex :: Int
   }
   deriving (Show, Eq)
 

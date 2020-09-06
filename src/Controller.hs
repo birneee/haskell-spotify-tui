@@ -1,11 +1,12 @@
 -- | TODO refresh access token if expired
 --  |TODO request new refresh token if not valid
-module Controller (initAppState, play, pause, next, previous, search, requestAccessToken) where
+module Controller (initAppState, play, pause, next, previous, search, requestAccessToken, playSelectedTrack) where
 
-import qualified ApiClient as API (next, pause, play, searchTrack)
+import qualified ApiClient as API (next, pause, play, playTrack, previous, searchTrack)
 import ApiObjects.AccessToken (AccessToken)
 import ApiObjects.RefreshToken (RefreshToken)
 import ApiObjects.SearchResponse (SearchResponse (SearchResponse), items)
+import ApiObjects.Track (uri)
 import AppState
   ( AppState (AppState),
     AppStateIO,
@@ -13,6 +14,7 @@ import AppState
     isPlaying,
     searchInput,
     searchResults,
+    selectedSearchResultIndex,
     _accessToken,
     _albumCover,
     _albumName,
@@ -21,6 +23,7 @@ import AppState
     _isPlaying,
     _searchInput,
     _searchResults,
+    _selectedSearchResultIndex,
     _showSearch,
     _trackName,
   )
@@ -29,7 +32,7 @@ import qualified Authenticator as A
     getAuthorizationCode,
     getRefreshToken,
   )
-import Control.Lens (assign, use, (.=), (^.))
+import Control.Lens (assign, ix, preuse, preview, previews, use, (.=), (^.))
 import Control.Monad.IO.Class (MonadIO (liftIO))
 import Data.Maybe (fromJust)
 import GHC.Base (Alternative ((<|>)))
@@ -69,7 +72,8 @@ initAppState = do
         _albumCover = defaultAlbumCover,
         _showSearch = True,
         _searchInput = "",
-        _searchResults = []
+        _searchResults = [],
+        _selectedSearchResultIndex = 0
       }
 
 play :: AppStateIO ()
@@ -77,7 +81,19 @@ play = do
   liftIO $ putStrLn "Test"
   at <- use accessToken
   status <- liftIO $ API.play at
-  liftIO $ putStrLn $ show status
+  -- liftIO $ putStrLn $ show status
+  case (status ^. code) of
+    202 -> assign isPlaying True
+    204 -> assign isPlaying True
+    _ -> return () -- TODO handle error
+
+playSelectedTrack :: AppStateIO ()
+playSelectedTrack = do
+  index <- use selectedSearchResultIndex
+  uri <- preuse (searchResults . ix index . uri)
+  at <- use accessToken
+  status <- liftIO $ API.playTrack at (fromJust uri)
+  -- liftIO $ putStrLn $ show status
   case (status ^. code) of
     202 -> assign isPlaying True
     204 -> assign isPlaying True
@@ -104,7 +120,7 @@ next = do
 previous :: AppStateIO ()
 previous = do
   at <- use accessToken
-  status <- liftIO $ API.pause at
+  status <- liftIO $ API.previous at
   case (status ^. code) of
     202 -> assign isPlaying True --TODO check Status Code
     204 -> assign isPlaying True --TODO check Status Code
