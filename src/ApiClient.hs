@@ -26,12 +26,12 @@ import           Network.HTTP.Client.TLS             (tlsManagerSettings)
 import           Network.HTTP.Types                  (Status)
 import           Utils.HttpUtils                     (getImage)
 import           Utils.LensUtils                     ((?^.), (?^.?))
-import           Utils.ListLenses                    (index)
 import           Utils.RequestLenses                 (jsonBody, method,
                                                       queryString,
                                                       requestHeaders)
 import           Utils.ResponseLenses                (body, status)
 import           Utils.StringUtils                   (pack)
+import Control.Lens (ix, (^?), _Just)
 
 play :: AccessToken -> IO Status
 play accessToken = do
@@ -156,9 +156,7 @@ getCurrentAlbumCover accessToken = do
     Just url -> getImage url
   where
     anyAlbumUrl :: CurrentlyPlayingResponse -> Maybe String
-    anyAlbumUrl response = do
-      let img = response ^. item ?^. album ?^. images ?^.? (index 0)
-      view url <$> img
+    anyAlbumUrl response = response ^? (item . _Just . album . images . ix 0 . url)
 
 searchTrack :: AccessToken -> String -> IO (Status, Maybe SearchResponse)
 searchTrack accessToken query = do

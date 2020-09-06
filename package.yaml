@@ -31,7 +31,6 @@ dependencies:
 - lens
 - monad-par
 - open-browser
-- relude
 - strip-ansi-escape
 - template-haskell
 - temporary
