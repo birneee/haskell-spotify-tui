@@ -143,15 +143,17 @@ theMap =
       (nextAttr, V.white `on` V.blue),
       (previousAttr, V.white `on` V.cyan),
       (E.editAttr, V.white `on` V.black),
-      (pAttr, V.black `on` V.green)
+      (pAttr, V.black `on` V.green),
+      (selectedAttr, V.white `on` V.magenta)
     ]
 
-playAttr, stopAttr, nextAttr, previousAttr, pAttr :: AttrName
+playAttr, stopAttr, nextAttr, previousAttr, pAttr, selectedAttr :: AttrName
 playAttr = "playAttr"
 stopAttr = "stopAttr"
 nextAttr = "nextAttr"
 previousAttr = "previousAttr"
 pAttr = "pAttr"
+selectedAttr = "selectedAttr"
 
 app :: App UIState () Name
 app =
@@ -217,17 +219,19 @@ drawResult ui = do
   L.renderList listDrawElement True genericList
 
 listDrawElement :: Bool -> SearchResultListItem -> Widget Name
-listDrawElement b item = C.hCenter $ str $ item ^. trackName
-
--- makeGenericList :: UIState -> GenericList Name Vector Track --L.List Name Char
--- makeGenericList ui = L.list () (Vec.fromList $ ui ^. appState ^. searchResults) 1
+-- listDrawElement b item = C.hCenter $ str $ item ^. trackName
+listDrawElement b item =
+  let selStr it =
+        if b
+          then withAttr selectedAttr (it)
+          else it --TDO: Check logic
+   in selStr $ str (item ^. trackName)
 
 drawPlay :: UIState -> Widget Name
 drawPlay ui
   | ui ^. appState ^. isPlaying = withAttr playAttr $ str "Play"
   | otherwise = withAttr pAttr $ str "Play"
 
---  | ui ^. appState ^. isPlaying = withAttr (uiToAttr) (str " ")
 drawStop = withAttr stopAttr $ str "Stop"
 
 drawNext = withAttr nextAttr $ str "Next"
