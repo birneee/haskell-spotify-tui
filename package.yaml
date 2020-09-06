@@ -29,16 +29,18 @@ dependencies:
   - JuicyPixels
   - JuicyPixels-extra
   - lens
+  - monad-par
   - open-browser
-  - relude
+  - strip-ansi-escape
   - template-haskell
+  - temporary
   - text
   - transformers
   - wai
   - warp
   - brick
-  - vty
   - vector
+  - vty
 
 library:
   source-dirs: src

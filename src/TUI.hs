@@ -31,22 +31,11 @@ import Brick
     Padding (..),
     Widget,
     attrMap,
-    attrName,
     continue,
-    customMain,
     defaultMain,
-    emptyWidget,
-    fg,
-    hBox,
-    hLimit,
     halt,
-    neverShowCursor,
     on,
-    padAll,
-    padLeft,
     padRight,
-    padTop,
-    resizeOrQuit,
     str,
     vBox,
     vLimit,
@@ -54,7 +43,7 @@ import Brick
     withBorderStyle,
     (<+>),
   )
-import Brick.AttrMap (AttrMap, AttrName, attrMap)
+import Brick.BChan (BChan, newBChan, writeBChan)
 import qualified Brick.Focus as F
 import qualified Brick.Main as M
 import Brick.Types
@@ -85,11 +74,12 @@ import qualified Brick.Widgets.Core as C
 import qualified Brick.Widgets.Edit as E
 import Brick.Widgets.List (GenericList, listSelectedL)
 import qualified Brick.Widgets.List as L
-import Control.Lens
+import Control.Lens (makeLenses, over, (%~), (&), (.~), (^.))
 import Control.Monad (void)
 import Control.Monad.IO.Class (MonadIO (liftIO))
 import qualified Controller as CONTROLLER
   ( initAppState,
+    mandelbrot,
     next,
     pause,
     play,
@@ -100,12 +90,15 @@ import qualified Controller as CONTROLLER
 import Data.Char
 import Data.Vector (Vector)
 import qualified Data.Vector as Vec
+import Graphics.Vty (refresh)
 import qualified Graphics.Vty as V
 import Widgets.ImageWidget (greedyRectangularImageWidget)
 
 data State = String
 
-data Event = Event
+data Event
+  = -- | forces vty to redraw album cover
+    MarkAlbumCoverDirty
 
 data Tick = Tick
 
@@ -129,7 +122,8 @@ data SearchResultListItem = SearchResultListItem
 data UIState = UIState
   { _edit :: E.Editor String Name, -- Search input
     _appState :: AppState,
-    _results :: L.List Name SearchResultListItem
+    _results :: L.List Name SearchResultListItem,
+    _eventChannel :: BChan Event
   }
 
 (makeLenses ''UIState)
@@ -175,7 +169,8 @@ tuiMain = do
 newUIState :: IO UIState
 newUIState = do
   appState <- CONTROLLER.initAppState
-  return $ UIState (E.editor SearchEdit Nothing "") appState (L.list ResultList (Vec.fromList []) 1)
+  eventChannel <- newBChan 10
+  return $ UIState (E.editor SearchEdit Nothing "") appState (L.list ResultList (Vec.fromList []) 1) eventChannel
 
 drawUI :: UIState -> [Widget Name]
 drawUI ui = [C.center $ drawMain ui]
@@ -217,11 +212,9 @@ trackToSearchResultListItem t =
 drawResult :: UIState -> Widget Name
 drawResult ui = do
   let genericList = ui ^. results
-
   L.renderList listDrawElement True genericList
 
 listDrawElement :: Bool -> SearchResultListItem -> Widget Name
--- listDrawElement b item = C.hCenter $ str $ item ^. trackName
 listDrawElement sel item =
   let selStr it =
         if sel
@@ -241,9 +234,6 @@ drawNext = withAttr nextAttr $ str "Next"
 drawPrevious = withAttr previousAttr $ str "Previous"
 
 drawHelp = str $ "'p':PLAY, 's':STOP, 'p':BACK, 'n':NEXT, 'esc':QUIT"
-
-vpScroll :: M.ViewportScroll Name
-vpScroll = M.viewportScroll VPResultList
 
 handleEvent :: UIState -> BrickEvent Name () -> EventM Name (Next UIState)
 handleEvent ui (VtyEvent (V.EvKey V.KDown [])) = M.continue (ui & results %~ (\l -> L.listMoveDown l))
@@ -265,34 +255,11 @@ handleEvent ui (VtyEvent (V.EvKey V.KEnter []))
 handleEvent ui (VtyEvent ev) | ui ^. appState ^. showSearch = continue =<< T.handleEventLensed ui edit E.handleEditorEvent ev -- for typing input
 handleEvent ui (VtyEvent (V.EvKey (V.KChar 'n') [])) = next ui
 handleEvent ui (VtyEvent (V.EvKey (V.KChar 'b') [])) = previous ui
+handleEvent ui (VtyEvent (V.EvKey (V.KChar 'm') [V.MMeta])) = do
+  -- easter egg, Key: Alt + M
+  sendEvent MarkAlbumCoverDirty ui
+  exec CONTROLLER.mandelbrot ui
 handleEvent ui _ = continue ui
-
-setPlayerModus :: String -> UIState -> EventM Name (Next UIState)
-setPlayerModus "play" ui = do
-  let a = ui ^. appState
-  a' <- liftIO $ execAppStateIO CONTROLLER.play a
-  liftIO $ putStrLn $ show a'
-  continue $ ui & appState .~ a'
-setPlayerModus "search" ui =
-  let a = ui ^. appState
-      u = execAppStateIO CONTROLLER.search a
-      ui . appState = u
-   in continue ui
-setPlayerModus "pause" ui =
-  let a = ui ^. appState
-      u = execAppStateIO CONTROLLER.pause a
-      ui . appState = u
-   in continue ui
-setPlayerModus "next" ui =
-  let a = ui ^. appState
-      u = execAppStateIO CONTROLLER.next a
-      ui . appState = u
-   in continue ui
-setPlayerModus "previous" ui =
-  let a = ui ^. appState
-      u = execAppStateIO CONTROLLER.previous a
-      ui . appState = u
-   in continue ui
 
 play :: UIState -> EventM Name (Next UIState)
 play ui = do
@@ -333,6 +300,13 @@ previous ui = do
   a' <- liftIO $ execAppStateIO CONTROLLER.previous a
   -- liftIO $ putStrLn $ show a'
   continue $ ui & appState .~ a'
+
+-- | send an event to the brick event queue
+sendEvent :: Event -> UIState -> EventM Name ()
+sendEvent event ui = do
+  let chan = ui ^. eventChannel
+  liftIO $ writeBChan chan event
+  return ()
 
 eval :: AppStateIO a -> UIState -> EventM Name UIState
 eval f uiState = do

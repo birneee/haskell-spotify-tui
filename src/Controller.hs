@@ -11,6 +11,7 @@ import AppState
   ( AppState (AppState),
     AppStateIO,
     accessToken,
+    albumCover,
     isPlaying,
     searchInput,
     searchResults,
@@ -40,7 +41,7 @@ import qualified Persistence as P
   ( loadRefreshToken,
     saveRefreshToken,
   )
-import Utils.ImageGenerator (generateRainbowImage)
+import Utils.ImageGenerator (generateMandelbrotImage, generateRainbowImage)
 import Utils.StatusLenses (code)
 
 -- | placeholder that is displayed when no album cover is available
@@ -125,6 +126,13 @@ previous = do
     202 -> assign isPlaying True --TODO check Status Code
     204 -> assign isPlaying True --TODO check Status Code
     _ -> return () -- TODO handle error
+
+mandelbrot :: AppStateIO ()
+mandelbrot = do
+  ac <- use albumCover
+  if ac == defaultAlbumCover
+    then albumCover .= generateMandelbrotImage 256 256
+    else albumCover .= defaultAlbumCover
 
 requestAccessToken :: IO AccessToken
 

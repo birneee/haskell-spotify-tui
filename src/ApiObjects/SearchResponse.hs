@@ -3,12 +3,10 @@
 
 module ApiObjects.SearchResponse where
 
-import ApiObjects.Device (Device)
 import ApiObjects.Track (Track)
 import Control.Applicative (optional)
 import Control.Lens (makeLenses)
-import Data.Aeson (FromJSON, parseJSON, (.:))
-import Data.Aeson.Types (Value (Object))
+import Data.Aeson (FromJSON, parseJSON, withObject, (.:))
 
 data SearchResponse = SearchResponse
   { _tracks :: Maybe Tracks
@@ -24,12 +22,12 @@ data Tracks = Tracks
   deriving (Show)
 
 instance FromJSON SearchResponse where
-  parseJSON (Object v) =
+  parseJSON = withObject "SearchResponse" $ \v ->
     SearchResponse
       <$> optional (v .: "tracks")
 
 instance FromJSON Tracks where
-  parseJSON (Object v) =
+  parseJSON = withObject "Tracks" $ \v ->
     Tracks
       <$> (v .: "items")
 

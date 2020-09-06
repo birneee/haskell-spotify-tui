@@ -1,29 +1,28 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module ApiObjects.PlayerResponse where
 
-import           ApiObjects.Device   (Device)
-import           ApiObjects.Track    (Track)
-import           Control.Applicative (optional)
-import           Control.Lens        (makeLenses)
-import           Data.Aeson          (FromJSON, parseJSON, (.:))
-import           Data.Aeson.Types    (Value (Object))
-
+import ApiObjects.Device (Device)
+import ApiObjects.Track (Track)
+import Control.Applicative (optional)
+import Control.Lens (makeLenses)
+import Data.Aeson (FromJSON, parseJSON, withObject, (.:))
 
 data PlayerResponse = PlayerResponse
-  {   _timestamp            :: Int,
-      _device               :: Device,
-      _progressMs           :: Maybe String,
-      _isPlaying            :: Bool,
-      _currentlyPlayingType :: String,
-      _item                 :: Maybe Track,
-      _shuffleState         :: Bool,
-      _repeatState          :: String
-  } deriving (Show)
+  { _timestamp :: Int,
+    _device :: Device,
+    _progressMs :: Maybe String,
+    _isPlaying :: Bool,
+    _currentlyPlayingType :: String,
+    _item :: Maybe Track,
+    _shuffleState :: Bool,
+    _repeatState :: String
+  }
+  deriving (Show)
 
 instance FromJSON PlayerResponse where
-  parseJSON (Object v) =
+  parseJSON = withObject "PlayerResponse" $ \v ->
     PlayerResponse
       <$> (v .: "timestamp")
       <*> (v .: "device")

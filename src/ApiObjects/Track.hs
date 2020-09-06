@@ -6,8 +6,7 @@ module ApiObjects.Track where
 import ApiObjects.Album (Album)
 import ApiObjects.Artist (Artist)
 import Control.Lens (makeLenses)
-import Data.Aeson (FromJSON, Value, parseJSON, (.:))
-import Data.Aeson.Types (Value (Object))
+import Data.Aeson (FromJSON, parseJSON, withObject, (.:))
 
 type Uri = String
 
@@ -26,7 +25,7 @@ data Track = Track
   deriving (Show, Eq)
 
 instance FromJSON Track where
-  parseJSON (Object v) =
+  parseJSON = withObject "Track" $ \v ->
     Track
       <$> (v .: "id")
       <*> (v .: "disc_number")

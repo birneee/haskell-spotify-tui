@@ -4,7 +4,7 @@
 module ApiObjects.Image where
 
 import Control.Lens (makeLenses)
-import Data.Aeson (FromJSON, Value (Object), parseJSON, (.:))
+import Data.Aeson (FromJSON, parseJSON, withObject, (.:))
 
 -- | source https://developer.spotify.com/documentation/web-api/reference/object-model/#image-object
 data Image = Image
@@ -12,10 +12,10 @@ data Image = Image
     _width :: Int,
     _height :: Int
   }
-  deriving (Show, Eq)
+  deriving (Show)
 
 instance FromJSON Image where
-  parseJSON (Object v) =
+  parseJSON = withObject "Image" $ \v ->
     Image
       <$> (v .: "url")
       <*> (v .: "width")
