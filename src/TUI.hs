@@ -72,6 +72,7 @@ import Brick.Widgets.Core
     txt,
     updateAttrMap,
     vLimit,
+    viewport,
     visible,
     withAttr,
     withBorderStyle,
@@ -110,6 +111,7 @@ data Tick = Tick
 data Name
   = SearchEdit
   | ResultList
+  | VPResultList
   deriving (Ord, Show, Eq)
 
 -- data Name1 = TextBox
@@ -131,7 +133,7 @@ data UIState = UIState
 
 (makeLenses ''UIState)
 
---TODO: Blink and Nebenlaeufigkeit
+--TODO: Nebenlaeufigkeit
 theMap :: AttrMap
 theMap =
   attrMap
@@ -196,18 +198,9 @@ drawAlbumCover ui = do
 drawFunction :: UIState -> Widget Name
 drawFunction ui = padRight (Pad 2) drawPrevious <+> padRight (Pad 2) drawStop <+> padRight (Pad 2) (drawPlay ui) <+> padRight (Pad 2) drawNext
 
--- data SearchResultListItem = SearchResultListItem
---   { _trackName :: String,
---     _albumName :: String,
---     _artistNames :: [String],
---     _trackUri :: Uri
---   }
-
 drawSearch :: UIState -> Widget Name
 drawSearch ui =
-  str "Input " <+> (vLimit 1 $ E.renderEditor (str . unlines) True (ui ^. edit)) <=> drawResult ui --TODO: call drawResult <=>
-  -- let tracks = ui ^. appState ^. searchResults
-  --  in B.borderWithLabel (str "Result") (L.renderList listDrawElement False (L.list "list" (Vec.fromList $ id) 1))
+  str "Input " <+> (vLimit 1 $ E.renderEditor (str . unlines) True (ui ^. edit)) <=> viewport VPResultList T.Vertical (visible $ vLimit 20 $ drawResult ui) --TODO: call drawResult <=>
 
 trackToSearchResultListItem :: Track -> SearchResultListItem
 trackToSearchResultListItem t =
