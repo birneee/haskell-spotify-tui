@@ -34,7 +34,7 @@ data AppState = AppState
     _searchResults :: [Track],
     _selectedSearchResultIndex :: Int
   }
-  deriving (Show, Eq)
+  deriving (Show)
 
 instance Show (Image a) where
   show _ = "<image>"

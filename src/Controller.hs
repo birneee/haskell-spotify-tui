@@ -1,6 +1,6 @@
 -- | TODO refresh access token if expired
 --  |TODO request new refresh token if not valid
-module Controller (initAppState, play, pause, next, previous, search, requestAccessToken, playSelectedTrack) where
+module Controller (initAppState, play, pause, next, previous, search, requestAccessToken, playSelectedTrack, mandelbrot) where
 
 import qualified ApiClient as API (next, pause, play, playTrack, previous, searchTrack)
 import ApiObjects.AccessToken (AccessToken)

@@ -22,7 +22,7 @@ data Track = Track
     _artists :: [Artist],
     _uri :: Uri
   }
-  deriving (Show, Eq)
+  deriving (Show)
 
 instance FromJSON Track where
   parseJSON = withObject "Track" $ \v ->

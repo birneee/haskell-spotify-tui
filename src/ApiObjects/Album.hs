@@ -13,7 +13,7 @@ data Album = Album
     _albumName :: String,
     _images :: [Image]
   }
-  deriving (Show, Eq)
+  deriving (Show)
 
 instance FromJSON Album where
   parseJSON = withObject "Album" $ \v ->
