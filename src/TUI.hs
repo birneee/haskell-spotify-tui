@@ -44,7 +44,7 @@ import qualified Controller as CONTROLLER (initAppState, mandelbrot, play, updat
 import Data.List (intercalate)
 import Graphics.Vty (refresh)
 import qualified Graphics.Vty as V
-import Relude ((?:))
+import Utils.MaybeUtils ((?:))
 import Widgets.ImageWidget (greedyRectangularImageWidget)
 
 data Event
