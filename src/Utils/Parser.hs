@@ -2,8 +2,6 @@ module Utils.Parser where
 
 import Control.Applicative (Alternative, empty, (<|>))
 import Control.Lens.Cons (cons)
-import Data.Char (digitToInt)
-import GHC.Base (assert)
 import GHC.Unicode (isDigit, isHexDigit)
 
 -- | simple parser implementation

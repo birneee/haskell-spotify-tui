@@ -1,14 +1,11 @@
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 module TUI (tuiMain) where
 
 import qualified ApiObjects.Album as ALBUM (albumName)
 import ApiObjects.Artist as ARTIST (artistName)
-import ApiObjects.Track (Track, Uri, album, artists, trackId)
+import ApiObjects.Track (Track, Uri, album, artists)
 import qualified ApiObjects.Track as TRACK (trackName, uri)
 import AppState
   ( AppState,
@@ -21,7 +18,7 @@ import AppState
     selectedSearchResultIndex,
     showSearch,
   )
-import qualified AppState as APPSTATE
+import qualified AppState as APPSTATE (albumName, artistNames, trackName)
 import Brick
   ( App (..),
     AttrMap,
@@ -34,7 +31,7 @@ import Brick
     attrMap,
     continue,
     customMain,
-    defaultMain,
+    getVtyHandle,
     halt,
     on,
     padRight,
@@ -46,38 +43,21 @@ import Brick
     (<+>),
   )
 import Brick.BChan (BChan, newBChan, writeBChan)
-import qualified Brick.Focus as F
 import qualified Brick.Main as M
-import Brick.Types
-  ( Extent,
-    Location,
-    Padding (..),
-    Widget,
-  )
 import qualified Brick.Types as T
 import qualified Brick.Widgets.Border as B
 import qualified Brick.Widgets.Border.Style as BS
 import qualified Brick.Widgets.Center as C
 import Brick.Widgets.Core
-  ( hBox,
-    hLimit,
-    str,
-    txt,
-    updateAttrMap,
-    vLimit,
-    viewport,
+  ( viewport,
     visible,
-    withAttr,
-    withBorderStyle,
-    (<+>),
     (<=>),
   )
 import qualified Brick.Widgets.Core as C
 import qualified Brick.Widgets.Edit as E
-import Brick.Widgets.List (GenericList, listSelectedL)
+import Brick.Widgets.List (listSelectedL)
 import qualified Brick.Widgets.List as L
 import Control.Lens (makeLenses, over, (%~), (&), (.~), (^.))
-import Control.Monad (void)
 import Control.Monad.IO.Class (MonadIO (liftIO))
 import qualified Controller as CONTROLLER
   ( initAppState,
@@ -90,24 +70,16 @@ import qualified Controller as CONTROLLER
     search,
     updateCurrentTrackInfo,
   )
-import Data.Char
 import Data.List (intercalate)
-import Data.Vector (Vector)
 import qualified Data.Vector as Vec
-import Graphics.Vty (refresh)
+import Graphics.Vty (Vty (refresh))
 import qualified Graphics.Vty as V
 import Utils.MaybeUtils ((?:))
 import Widgets.ImageWidget (greedyRectangularImageWidget)
 
-data State = String
-
 data Event
   = -- | forces vty to redraw album cover
     MarkAlbumCoverDirty
-
-data Tick = Tick
-
--- type Name = ()
 
 data Name
   = SearchEdit
@@ -122,7 +94,7 @@ data SearchResultListItem = SearchResultListItem
     _trackUri :: Uri
   }
 
-(makeLenses ''SearchResultListItem)
+$(makeLenses ''SearchResultListItem)
 
 data UIState = UIState
   { _edit :: E.Editor String Name, -- Search input
@@ -131,7 +103,7 @@ data UIState = UIState
     _eventChannel :: BChan Event
   }
 
-(makeLenses ''UIState)
+$(makeLenses ''UIState)
 
 --TODO: Nebenlaeufigkeit
 theMap :: AttrMap
@@ -144,16 +116,18 @@ theMap =
       (previousAttr, V.white `on` V.cyan),
       (E.editAttr, V.white `on` V.black),
       (pAttr, V.black `on` V.green),
-      (selectedAttr, V.white `on` V.magenta)
+      (selectedAttr, V.white `on` V.magenta),
+      (shortcutAttr, V.black `on` V.white)
     ]
 
-playAttr, stopAttr, nextAttr, previousAttr, pAttr, selectedAttr :: AttrName
+playAttr, stopAttr, nextAttr, previousAttr, pAttr, selectedAttr, shortcutAttr :: AttrName
 playAttr = "playAttr"
 stopAttr = "stopAttr"
 nextAttr = "nextAttr"
 previousAttr = "previousAttr"
 pAttr = "pAttr"
 selectedAttr = "selectedAttr"
+shortcutAttr = "shortcutAttr"
 
 app :: App UIState Event Name
 app =
@@ -183,10 +157,11 @@ newUIState = do
 drawUI :: UIState -> [Widget Name]
 drawUI ui = [C.center $ drawMain ui]
 
+drawMain :: UIState -> Widget Name
 drawMain ui = vLimit 100 $ vBox [drawMusic ui, drawFunction ui, drawHelp]
 
 drawMusic :: UIState -> Widget Name
-drawMusic ui = withBorderStyle BS.unicode $ B.borderWithLabel (str "FFP Music Player") $ (C.center (drawAlbumCover ui) <+> B.vBorder <+> C.center (drawRight ui))
+drawMusic ui = withBorderStyle BS.unicode $ B.borderWithLabel (str "Haskell Spotify TUI") $ (C.center (drawAlbumCover ui) <+> B.vBorder <+> C.center (drawRight ui))
 
 drawRight :: UIState -> Widget Name
 drawRight ui
@@ -217,7 +192,9 @@ drawFunction ui =
 
 drawSearch :: UIState -> Widget Name
 drawSearch ui =
-  str "Input " <+> (vLimit 1 $ E.renderEditor (str . unlines) True (ui ^. edit)) <=> viewport VPResultList T.Vertical (visible $ vLimit 20 $ drawResult ui) --TODO: call drawResult <=>
+  str "Search " <+> (vLimit 1 $ E.renderEditor (str . unlines) True (ui ^. edit))
+    <=> (C.strWrap "Track" <+> C.strWrap "Artists" <+> C.strWrap "Album")
+    <=> viewport VPResultList T.Vertical (visible $ vLimit 20 $ drawResult ui) --TODO: call drawResult <=>
 
 trackToSearchResultListItem :: Track -> SearchResultListItem
 trackToSearchResultListItem t =
@@ -238,8 +215,13 @@ listDrawElement sel item =
   let selStr it =
         if sel
           then withAttr selectedAttr (it)
-          else it --TDO: Check logic
-   in selStr $ str (item ^. trackName)
+          else it --TODO: Check logic
+   in selStr $
+        C.hBox
+          [ C.strWrap (item ^. trackName),
+            C.strWrap $ intercalate ", " (item ^. artistNames),
+            C.strWrap (item ^. albumName)
+          ]
 
 drawPlay :: UIState -> Widget Name
 drawPlay ui
@@ -255,29 +237,63 @@ drawNext = withAttr nextAttr $ str "Next"
 drawPrevious :: Widget n
 drawPrevious = withAttr previousAttr $ str "Previous"
 
-drawHelp = str "Please log in Spotify at first" <=> str "'space':PLAY/ STOP, 'b':BACK, 'n':NEXT, 'esc':QUIT, 'alt-f': turn-off the input field"
+drawHelp :: Widget n
+drawHelp = C.hBox $ draw <$> help
+  where
+    draw :: (String, String) -> Widget n
+    draw (shortcut, description) =
+      padRight (Pad 3) $
+        (withAttr shortcutAttr $ str shortcut)
+          <+> (C.padLeft (Pad 1) $ str description)
+    help :: [(String, String)]
+    help =
+      [ ("SPACE", "Play/Pause"),
+        ("B", "Previous Track"),
+        ("N", "Next Track"),
+        ("ALT+F", "Search Track"),
+        ("ESC", "Quit")
+      ]
 
 handleEvent :: UIState -> BrickEvent Name Event -> EventM Name (Next UIState)
-handleEvent ui (VtyEvent (V.EvKey V.KDown [])) = M.continue (ui & results %~ (\l -> L.listMoveDown l))
-handleEvent ui (VtyEvent (V.EvKey V.KUp [])) = M.continue (ui & results %~ (\l -> L.listMoveUp l))
+handleEvent ui (AppEvent MarkAlbumCoverDirty) = do
+  vty <- getVtyHandle
+  liftIO $ refresh vty
+  continue ui
+handleEvent ui (VtyEvent (V.EvKey V.KDown [])) = do
+  sendEvent MarkAlbumCoverDirty ui
+  M.continue (ui & results %~ (\l -> L.listMoveDown l))
+handleEvent ui (VtyEvent (V.EvKey V.KUp [])) = do
+  sendEvent MarkAlbumCoverDirty ui
+  M.continue (ui & results %~ (\l -> L.listMoveUp l))
 handleEvent ui (VtyEvent (V.EvKey (V.KChar ' ') []))
-  | ui ^. appState ^. isPlaying = pause ui
-  | otherwise = play ui
-handleEvent ui (VtyEvent (V.EvKey (V.KEsc) [])) = halt ui
-handleEvent ui (VtyEvent (V.EvKey (V.KChar 'f') [V.MMeta])) = continue $ over (appState . showSearch) not ui
+  | ui ^. appState ^. isPlaying = exec CONTROLLER.pause ui
+  | otherwise = exec CONTROLLER.play ui
+handleEvent ui (VtyEvent (V.EvKey (V.KEsc) []))
+  | ui ^. (appState . showSearch) = do
+    sendEvent MarkAlbumCoverDirty ui
+    continue $ ui & (appState . showSearch) .~ False
+  | otherwise = halt ui
+handleEvent ui (VtyEvent (V.EvKey (V.KChar 'f') [V.MMeta])) = do
+  sendEvent MarkAlbumCoverDirty ui
+  continue $ over (appState . showSearch) not ui
 handleEvent ui (VtyEvent (V.EvKey V.KEnter []))
   | ui ^. (appState . searchInput) == (head $ E.getEditContents $ ui ^. edit) = do
     let index = ui ^. (results . listSelectedL)
     case index of
       Just x -> do
         let ui' = ui & (appState . selectedSearchResultIndex) .~ x
-        sendEvent MarkAlbumCoverDirty ui
         exec CONTROLLER.playSelectedTrack ui'
       Nothing -> continue ui
-  | ui ^. (appState . showSearch) = do search ui
+  | ui ^. (appState . showSearch) = do
+    sendEvent MarkAlbumCoverDirty ui
+    search ui
 handleEvent ui (VtyEvent ev) | ui ^. appState ^. showSearch = continue =<< T.handleEventLensed ui edit E.handleEditorEvent ev -- for typing input
-handleEvent ui (VtyEvent (V.EvKey (V.KChar 'n') [])) = next ui
-handleEvent ui (VtyEvent (V.EvKey (V.KChar 'b') [])) = previous ui
+handleEvent ui (VtyEvent (V.EvKey (V.KChar 'n') [])) = do
+  sendEvent MarkAlbumCoverDirty ui
+  exec CONTROLLER.next ui
+handleEvent ui (VtyEvent (V.EvKey (V.KChar 'b') [])) = do
+  sendEvent MarkAlbumCoverDirty ui
+  exec CONTROLLER.previous ui
 handleEvent ui (VtyEvent (V.EvKey (V.KChar 'm') [V.MMeta])) = do
   -- easter egg, Key: Alt + M
   sendEvent MarkAlbumCoverDirty ui
@@ -286,13 +302,6 @@ handleEvent ui (VtyEvent (V.EvKey (V.KChar 'u') [])) = do
   sendEvent MarkAlbumCoverDirty ui
   exec CONTROLLER.updateCurrentTrackInfo ui
 handleEvent ui _ = continue ui
-
-play :: UIState -> EventM Name (Next UIState)
-play ui = do
-  let a = ui ^. appState
-  a' <- liftIO $ execAppStateIO CONTROLLER.play a
-  liftIO $ putStrLn $ show a'
-  continue $ ui & appState .~ a'
 
 search :: UIState -> EventM Name (Next UIState)
 search ui = do
@@ -305,27 +314,6 @@ search ui = do
   let ui''' = ui'' & results .~ L.list ResultList (Vec.fromList items) 1
   -- liftIO $ putStrLn $ show as
   continue ui'''
-
-pause :: UIState -> EventM Name (Next UIState)
-pause ui = do
-  let a = ui ^. appState
-  a' <- liftIO $ execAppStateIO CONTROLLER.pause a
-  -- liftIO $ putStrLn $ show a'
-  continue $ ui & appState .~ a'
-
-next :: UIState -> EventM Name (Next UIState)
-next ui = do
-  let a = ui ^. appState
-  a' <- liftIO $ execAppStateIO CONTROLLER.next a
-  -- liftIO $ putStrLn $ show a'
-  continue $ ui & appState .~ a'
-
-previous :: UIState -> EventM Name (Next UIState)
-previous ui = do
-  let a = ui ^. appState
-  a' <- liftIO $ execAppStateIO CONTROLLER.previous a
-  -- liftIO $ putStrLn $ show a'
-  continue $ ui & appState .~ a'
 
 -- | send an event to the brick event queue
 sendEvent :: Event -> UIState -> EventM Name ()
