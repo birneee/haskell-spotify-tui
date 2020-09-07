@@ -23,7 +23,9 @@ data AppState = AppState
     _showSearch :: Bool,
     _searchInput :: String,
     _searchResults :: [Track],
-    _selectedSearchResultIndex :: Int
+    _selectedSearchResultIndex :: Int,
+    _progressMs :: Int,
+    _durationMs :: Int
   }
   deriving (Show)
 

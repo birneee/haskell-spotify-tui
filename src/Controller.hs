@@ -1,6 +1,6 @@
 -- | TODO refresh access token if expired
 -- TODO request new refresh token if not valid
-module Controller (initAppState, play, pause, next, previous, search, requestAccessToken, playSelectedTrack, mandelbrot, updateCurrentTrackInfo) where
+module Controller (initAppState, updateProgress, play, pause, next, previous, search, requestAccessToken, playSelectedTrack, mandelbrot, updateCurrentTrackInfo) where
 
 import qualified ApiClient as API (getCurrentAlbumCover, getPlayer, next, pause, play, playTrack, previous, searchTrack)
 import ApiObjects.AccessToken (AccessToken)
@@ -33,7 +33,9 @@ import AppState
     _albumName,
     _artistNames,
     _deviceId,
+    _durationMs,
     _isPlaying,
+    _progressMs,
     _searchInput,
     _searchResults,
     _selectedSearchResultIndex,
@@ -88,7 +90,9 @@ initAppState = do
         _showSearch = True,
         _searchInput = "",
         _searchResults = [],
-        _selectedSearchResultIndex = 0
+        _selectedSearchResultIndex = 0,
+        _progressMs = 0,
+        _durationMs = 0
       }
 
 play :: AppStateIO ()
@@ -168,6 +172,9 @@ updateCurrentTrackInfo = do
       albumCoverUrl .= pr ^? (PR.item . _Just . TRACK.album . ALBUM.images . ix 0 . IMAGE.url)
       updateAlbumCover
     _ -> return () -- TODO handle error
+
+updateProgress :: AppStateIO ()
+updateProgress = undefined
 
 mandelbrot :: AppStateIO ()
 mandelbrot = do
