@@ -46,10 +46,9 @@ import qualified Authenticator as A
     getRefreshToken,
   )
 import Codec.Picture (Image, PixelRGB8)
-import Control.Lens (assign, ix, preuse, preview, previews, use, view, (.=), (^.), (^?), _Just)
+import Control.Lens (assign, ix, preuse, use, view, (.=), (^.), (^?), _Just)
 import Control.Monad.IO.Class (MonadIO (liftIO))
 import Data.Maybe (fromJust)
-import GHC.Base (Alternative ((<|>)))
 import qualified Persistence as P
   ( loadRefreshToken,
     saveRefreshToken,
@@ -94,13 +93,13 @@ initAppState = do
 
 play :: AppStateIO ()
 play = do
-  liftIO $ putStrLn "Test"
   at <- use accessToken
   status <- liftIO $ API.play at
   -- liftIO $ putStrLn $ show status
   case (status ^. code) of
-    202 -> assign isPlaying True
-    204 -> assign isPlaying True
+    c | c == 200 || c == 204 -> do
+      assign isPlaying True
+      updateCurrentTrackInfo
     _ -> return () -- TODO handle error
 
 playSelectedTrack :: AppStateIO ()
@@ -111,8 +110,9 @@ playSelectedTrack = do
   status <- liftIO $ API.playTrack at (fromJust uri)
   -- liftIO $ putStrLn $ show status
   case (status ^. code) of
-    202 -> assign isPlaying True
-    204 -> assign isPlaying True
+    c | c == 200 || c == 204 -> do
+      assign isPlaying True
+      updateCurrentTrackInfo
     _ -> return () -- TODO handle error
 
 pause :: AppStateIO ()
@@ -128,9 +128,11 @@ next :: AppStateIO ()
 next = do
   at <- use accessToken
   status <- liftIO $ API.next at
+  -- liftIO $ putStrLn $ show status
   case (status ^. code) of
-    202 -> assign isPlaying True --TODO check Status Code
-    204 -> assign isPlaying True --TODO check Status Code
+    c | c `elem` [200, 202, 204] -> do
+      assign isPlaying True
+      updateCurrentTrackInfo
     _ -> return () -- TODO handle error
 
 previous :: AppStateIO ()
@@ -138,8 +140,10 @@ previous = do
   at <- use accessToken
   status <- liftIO $ API.previous at
   case (status ^. code) of
-    202 -> assign isPlaying True --TODO check Status Code
-    204 -> assign isPlaying True --TODO check Status Code
+    c | c `elem` [200, 202, 204] -> do
+      assign isPlaying True
+      updateCurrentTrackInfo
+    _ -> return () -- TODO handle error
 
 -- | download albumCoverUrl and set albumCover
 updateAlbumCover :: AppStateIO ()

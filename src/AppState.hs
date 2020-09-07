@@ -7,17 +7,7 @@ import ApiObjects.AccessToken (AccessToken)
 import ApiObjects.Device (DeviceId)
 import ApiObjects.Track (Track)
 import Codec.Picture.Types (Image, PixelRGB8)
-import Control.Lens
-  ( assign,
-    makeLenses,
-    modifying,
-    use,
-    view,
-    (%=),
-    (.=),
-  )
-import Control.Monad (void)
-import Control.Monad.IO.Class (MonadIO (liftIO))
+import Control.Lens (makeLenses)
 import Control.Monad.Trans.State (StateT, evalStateT, execStateT)
 import Data.Functor.Identity (runIdentity)
 
