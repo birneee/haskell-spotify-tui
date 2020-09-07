@@ -5,8 +5,19 @@ module AppState where
 
 import ApiObjects.AccessToken (AccessToken)
 import ApiObjects.Device (DeviceId)
+import ApiObjects.Track (Track)
 import Codec.Picture.Types (Image, PixelRGB8)
-import Control.Lens (makeLenses)
+import Control.Lens
+  ( assign,
+    makeLenses,
+    modifying,
+    use,
+    view,
+    (%=),
+    (.=),
+  )
+import Control.Monad (void)
+import Control.Monad.IO.Class (MonadIO (liftIO))
 import Control.Monad.Trans.State (StateT, evalStateT, execStateT)
 import Data.Functor.Identity (runIdentity)
 
@@ -20,9 +31,11 @@ data AppState = AppState
     _albumCoverUrl :: Maybe String,
     _albumCover :: Image PixelRGB8,
     _showSearch :: Bool,
-    _searchInput :: String
+    _searchInput :: String,
+    _searchResults :: [Track],
+    _selectedSearchResultIndex :: Int
   }
-  deriving (Show, Eq)
+  deriving (Show)
 
 instance Show (Image a) where
   show _ = "<image>"
