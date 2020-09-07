@@ -38,6 +38,7 @@ dependencies:
 - warp
 - brick
 - vty
+- unordered-containers
 
 library:
   source-dirs: src
