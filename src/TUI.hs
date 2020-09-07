@@ -76,6 +76,7 @@ import qualified Brick.Widgets.Core as C
 import qualified Brick.Widgets.Edit as E
 import Brick.Widgets.List (GenericList, listSelectedL)
 import qualified Brick.Widgets.List as L
+import qualified Brick.Widgets.ProgressBar as P
 import Control.Lens (makeLenses, over, (%~), (&), (.~), (^.))
 import Control.Monad (void)
 import Control.Monad.IO.Class (MonadIO (liftIO))
@@ -147,13 +148,15 @@ theMap =
       (selectedAttr, V.white `on` V.magenta)
     ]
 
-playAttr, stopAttr, nextAttr, previousAttr, pAttr, selectedAttr :: AttrName
+playAttr, stopAttr, nextAttr, previousAttr, pAttr, selectedAttr, progressCompleteAttr, progressIncompleteAttr :: AttrName
 playAttr = "playAttr"
 stopAttr = "stopAttr"
 nextAttr = "nextAttr"
 previousAttr = "previousAttr"
 pAttr = "pAttr"
 selectedAttr = "selectedAttr"
+progressCompleteAttr = "progressComplete"
+progressIncompleteAttr = "progressIncomplete"
 
 app :: App UIState Event Name
 app =
@@ -245,6 +248,9 @@ drawPlay :: UIState -> Widget Name
 drawPlay ui
   | ui ^. appState ^. isPlaying = withAttr playAttr $ str "Play"
   | otherwise = withAttr pAttr $ str "Play"
+
+drawProgressBar :: UIState -> Widget Name
+drawProgressBar ui = P.progressBar (Just "X") 0
 
 drawStop :: Widget n
 drawStop = withAttr stopAttr $ str "Stop"
