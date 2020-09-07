@@ -249,6 +249,7 @@ handleEvent ui (VtyEvent (V.EvKey V.KEnter []))
     case index of
       Just x -> do
         let ui' = ui & (appState . selectedSearchResultIndex) .~ x
+        sendEvent MarkAlbumCoverDirty ui
         exec CONTROLLER.playSelectedTrack ui'
       Nothing -> continue ui
   | ui ^. (appState . showSearch) = do search ui
