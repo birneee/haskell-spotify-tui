@@ -17,6 +17,7 @@ data AppState = AppState
     _trackName :: Maybe String,
     _albumName :: Maybe String,
     _artistNames :: [String],
+    _albumCoverUrl :: Maybe String,
     _albumCover :: Image PixelRGB8,
     _showSearch :: Bool,
     _searchInput :: String
