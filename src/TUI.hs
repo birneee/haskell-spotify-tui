@@ -21,6 +21,7 @@ import AppState
     selectedSearchResultIndex,
     showSearch,
   )
+import qualified AppState as APPSTATE
 import Brick
   ( App (..),
     AttrMap,
@@ -32,6 +33,7 @@ import Brick
     Widget,
     attrMap,
     continue,
+    customMain,
     defaultMain,
     halt,
     on,
@@ -86,12 +88,15 @@ import qualified Controller as CONTROLLER
     playSelectedTrack,
     previous,
     search,
+    updateCurrentTrackInfo,
   )
 import Data.Char
+import Data.List (intercalate)
 import Data.Vector (Vector)
 import qualified Data.Vector as Vec
 import Graphics.Vty (refresh)
 import qualified Graphics.Vty as V
+import Utils.MaybeUtils ((?:))
 import Widgets.ImageWidget (greedyRectangularImageWidget)
 
 data State = String
@@ -150,7 +155,7 @@ previousAttr = "previousAttr"
 pAttr = "pAttr"
 selectedAttr = "selectedAttr"
 
-app :: App UIState () Name
+app :: App UIState Event Name
 app =
   App
     { appDraw = drawUI,
@@ -162,8 +167,11 @@ app =
 
 tuiMain :: IO ()
 tuiMain = do
-  u <- newUIState
-  defaultMain app u
+  state <- newUIState
+  let chan = state ^. eventChannel
+  let builder = V.mkVty V.defaultConfig
+  initialVty <- builder
+  _ <- customMain initialVty builder (Just chan) app state
   return ()
 
 newUIState :: IO UIState
@@ -185,8 +193,16 @@ drawRight ui
   | ui ^. appState ^. showSearch = drawSearch ui
   | otherwise = drawInfo ui
 
-drawInfo :: UIState -> Widget Name
-drawInfo ui = vBox [C.center (str "Title"), C.center (str "Song"), C.center (str "Artist"), C.center (str "Review")]
+drawInfo :: UIState -> Widget n
+drawInfo ui =
+  C.center $
+    C.padLeft (Pad 1) $
+      vBox
+        [ str $ "Track: " ++ (ui ^. (appState . APPSTATE.trackName) ?: ""),
+          str $ "Artists: " ++ intercalate ", " (ui ^. (appState . APPSTATE.artistNames)),
+          str $ "Album: " ++ (ui ^. (appState . APPSTATE.albumName) ?: ""),
+          str $ "Review: "
+        ]
 
 drawAlbumCover :: UIState -> Widget Name
 drawAlbumCover ui = do
@@ -194,7 +210,10 @@ drawAlbumCover ui = do
   B.border $ greedyRectangularImageWidget image
 
 drawFunction :: UIState -> Widget Name
-drawFunction ui = padRight (Pad 2) drawPrevious <+> padRight (Pad 2) drawStop <+> padRight (Pad 2) (drawPlay ui) <+> padRight (Pad 2) drawNext
+drawFunction ui =
+  C.vLimit 3 $
+    C.center $
+      padRight (Pad 2) drawPrevious <+> padRight (Pad 2) drawStop <+> padRight (Pad 2) (drawPlay ui) <+> padRight (Pad 2) drawNext
 
 drawSearch :: UIState -> Widget Name
 drawSearch ui =
@@ -227,15 +246,18 @@ drawPlay ui
   | ui ^. appState ^. isPlaying = withAttr playAttr $ str "Play"
   | otherwise = withAttr pAttr $ str "Play"
 
+drawStop :: Widget n
 drawStop = withAttr stopAttr $ str "Stop"
 
+drawNext :: Widget n
 drawNext = withAttr nextAttr $ str "Next"
 
+drawPrevious :: Widget n
 drawPrevious = withAttr previousAttr $ str "Previous"
 
 drawHelp = str "Please log in Spotify at first" <=> str "'space':PLAY/ STOP, 'b':BACK, 'n':NEXT, 'esc':QUIT, 'alt-f': turn-off the input field"
 
-handleEvent :: UIState -> BrickEvent Name () -> EventM Name (Next UIState)
+handleEvent :: UIState -> BrickEvent Name Event -> EventM Name (Next UIState)
 handleEvent ui (VtyEvent (V.EvKey V.KDown [])) = M.continue (ui & results %~ (\l -> L.listMoveDown l))
 handleEvent ui (VtyEvent (V.EvKey V.KUp [])) = M.continue (ui & results %~ (\l -> L.listMoveUp l))
 handleEvent ui (VtyEvent (V.EvKey (V.KChar ' ') []))
@@ -260,6 +282,9 @@ handleEvent ui (VtyEvent (V.EvKey (V.KChar 'm') [V.MMeta])) = do
   -- easter egg, Key: Alt + M
   sendEvent MarkAlbumCoverDirty ui
   exec CONTROLLER.mandelbrot ui
+handleEvent ui (VtyEvent (V.EvKey (V.KChar 'u') [])) = do
+  sendEvent MarkAlbumCoverDirty ui
+  exec CONTROLLER.updateCurrentTrackInfo ui
 handleEvent ui _ = continue ui
 
 play :: UIState -> EventM Name (Next UIState)
