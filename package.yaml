@@ -29,14 +29,18 @@ dependencies:
 - JuicyPixels
 - JuicyPixels-extra
 - lens
+- monad-par
 - open-browser
 - relude
+- strip-ansi-escape
 - template-haskell
+- temporary
 - text
 - transformers
 - wai
 - warp
 - brick
+- vector
 - vty
 - unordered-containers
 

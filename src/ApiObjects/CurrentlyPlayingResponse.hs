@@ -1,25 +1,23 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RankNTypes        #-}
-{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module ApiObjects.CurrentlyPlayingResponse where
 
-import           ApiObjects.Track    (Track)
-import           Control.Applicative (optional)
-import           Control.Lens        (makeLenses)
-import           Data.Aeson          (FromJSON, parseJSON, (.:), (.:?))
-import           Data.Aeson.Types    (Value (Object))
+import ApiObjects.Track (Track)
+import Control.Applicative (optional)
+import Control.Lens (makeLenses)
+import Data.Aeson (FromJSON, parseJSON, withObject, (.:))
 
 data CurrentlyPlayingResponse = CurrentlyPlayingResponse
-  { _timestamp  :: Int,
+  { _timestamp :: Int,
     _progressMs :: Maybe Int,
-    _isPlaying  :: Bool,
-    _item       :: Maybe Track
+    _isPlaying :: Bool,
+    _item :: Maybe Track
   }
   deriving (Show)
 
 instance FromJSON CurrentlyPlayingResponse where
-  parseJSON (Object v) =
+  parseJSON = withObject "CurrentlyPlayingResponse" $ \v ->
     CurrentlyPlayingResponse
       <$> (v .: "timestamp")
       <*> optional (v .: "progress_ms")
