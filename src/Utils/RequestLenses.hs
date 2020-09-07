@@ -1,17 +1,24 @@
 {-# LANGUAGE RankNTypes #-}
+
 module Utils.RequestLenses where
 
-import           Control.Lens        (Lens', lens)
-import           Control.Lens.Setter (Setter')
-import           Data.Aeson          (encode)
-import           Data.Aeson.Types    (ToJSON)
-import           Data.ByteString     (ByteString)
-import qualified Network.HTTP.Client as H (Request,
-                                           RequestBody (RequestBodyLBS), method,
-                                           requestBody, requestHeaders, secure,
-                                           setQueryString, urlEncodedBody)
-import qualified Network.HTTP.Types  as H (RequestHeaders)
-import           Utils.StringUtils
+import Control.Lens (Lens', lens)
+import Control.Lens.Setter (Setter')
+import Data.Aeson (encode)
+import Data.Aeson.Types (ToJSON)
+import Data.ByteString (ByteString)
+import qualified Network.HTTP.Client as H
+  ( Request,
+    RequestBody (RequestBodyLBS),
+    method,
+    requestBody,
+    requestHeaders,
+    secure,
+    setQueryString,
+    urlEncodedBody,
+  )
+import qualified Network.HTTP.Types as H (RequestHeaders)
+import Utils.StringUtils
 
 method :: Lens' H.Request String
 method = lens getter setter
@@ -56,7 +63,7 @@ jsonBody :: forall a. ToJSON a => Setter' H.Request a
 jsonBody = lens undefined setter
   where
     setter :: forall a. ToJSON a => H.Request -> a -> H.Request
-    setter req val = req { H.requestBody = H.RequestBodyLBS $ encode val}
+    setter req val = req {H.requestBody = H.RequestBodyLBS $ encode val}
 
 -- helper functions
 packQueryString :: [(String, Maybe String)] -> [(ByteString, Maybe ByteString)]

@@ -142,9 +142,8 @@ previousParser = Previous <$ (stringParser "previous") <* endParser
 getVolumeParser :: Parser Option
 getVolumeParser = GetVolume <$ (stringParser "volume") <* endParser
 
-setVolumeParser :: Parser Option
-
 -- | TODO parse optional percent sign
+setVolumeParser :: Parser Option
 setVolumeParser = SetVolume <$> ((stringParser "volume") *> whiteSpaceParser *> intParser <* endParser)
 
 -- helper parser
