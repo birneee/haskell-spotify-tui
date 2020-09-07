@@ -26,7 +26,6 @@ import Network.HTTP.Client
   ( httpLbs,
     newManager,
     parseRequest,
-    responseBody,
   )
 import Network.HTTP.Client.TLS (tlsManagerSettings)
 import Network.HTTP.Types (status200, status400)
@@ -48,15 +47,18 @@ import Utils.RequestLenses
     urlEncodedBody,
   )
 import Utils.ResponseLenses (body)
-import Utils.StringUtils
+import Utils.StringUtils (Packable (pack), Unpackable (unpack))
 import Web.Browser (openBrowser)
 
--- TODO load from config file
+-- | TODO load from config file
+clientId :: String
 clientId = "f6ee1f37d5ab4dfba595af9e7885e08c"
 
--- TODO load from config file
+-- | TODO load from config file
+clientSecret :: String
 clientSecret = "adf60940a07f46908c3c457a4d147713"
 
+redirectUrl :: String
 redirectUrl = "http://localhost:8888/callback"
 
 -- | see all scopes at https://developer.spotify.com/documentation/general/guides/scopes/
@@ -82,7 +84,7 @@ getAuthorizationCode = do
            ("scope", Just scopes)
          ]
   --putStrLn $ "open this url in browser: " ++ toUrl request
-  openBrowser $ toUrl request
+  _ <- openBrowser $ toUrl request
   pack <$> awaitAuthorizationCallback
 
 getRefreshToken :: AuthorizationCode -> IO RefreshToken

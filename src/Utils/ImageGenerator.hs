@@ -6,7 +6,6 @@ import Codec.Picture
   ( Image,
     Pixel8,
     PixelRGB8 (PixelRGB8),
-    imageWidth,
   )
 import Data.Complex (Complex ((:+)), magnitude)
 import Utils.ImageUtils (parGenerateImage)
@@ -43,4 +42,4 @@ generateMandelbrotPixel imageWidth imageHeight x y = color $ mandelbrot (x' / w'
     mandelbrot r i =
       length . takeWhile (\z -> magnitude z <= 2)
         . take maxIter
-        $ iterate (\z -> z ^ 2 + (r :+ i)) 0
+        $ iterate (\z -> z ^ (2 :: Int) + (r :+ i)) 0

@@ -2,7 +2,6 @@
 
 module Utils.RawString (rawString, rawStringExp) where
 
-import Data.List (isPrefixOf)
 import Language.Haskell.TH (Exp, Q)
 import Language.Haskell.TH.Quote
   ( QuasiQuoter (QuasiQuoter),
