@@ -1,13 +1,7 @@
 module Persistence where
 
-import ApiObjects.AccessToken (AccessToken)
 import ApiObjects.RefreshToken (RefreshToken)
-import Authenticator
-  ( getAccessToken,
-    getAuthorizationCode,
-    getRefreshToken,
-  )
-import Utils.StringUtils
+import Utils.StringUtils (Packable (pack), Unpackable (unpack))
 
 -- | Save refresh token in file
 -- TODO use config.json file
