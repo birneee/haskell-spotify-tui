@@ -233,7 +233,7 @@ drawNext = withAttr nextAttr $ str "Next"
 
 drawPrevious = withAttr previousAttr $ str "Previous"
 
-drawHelp = str $ "'p':PLAY, 's':STOP, 'p':BACK, 'n':NEXT, 'esc':QUIT"
+drawHelp = str "Please log in Spotify at first" <=> str "'space':PLAY/ STOP, 'b':BACK, 'n':NEXT, 'esc':QUIT, 'alt-f': turn-off the input field"
 
 handleEvent :: UIState -> BrickEvent Name () -> EventM Name (Next UIState)
 handleEvent ui (VtyEvent (V.EvKey V.KDown [])) = M.continue (ui & results %~ (\l -> L.listMoveDown l))
