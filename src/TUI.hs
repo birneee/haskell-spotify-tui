@@ -3,7 +3,7 @@
 
 module TUI (tuiMain) where
 
-import AppState (AppState, AppStateIO, albumCover, execAppStateIO)
+import AppState (AppState, AppStateIO, albumCover, albumName, artistNames, execAppStateIO, trackName)
 import Brick
   ( App (..),
     AttrMap,
@@ -28,36 +28,23 @@ import Brick
     withBorderStyle,
     (<+>),
   )
-import Brick.AttrMap (AttrMap, AttrName, attrMap)
 import Brick.BChan (BChan, newBChan, writeBChan)
 import qualified Brick.Main as M
-import Brick.Types
-  ( Padding (..),
-    Widget,
-  )
 import qualified Brick.Widgets.Border as B
 import qualified Brick.Widgets.Border.Style as BS
 import qualified Brick.Widgets.Center as C
 import Brick.Widgets.Core
-  ( hBox,
-    hLimit,
-    str,
-    txt,
-    updateAttrMap,
-    vLimit,
-    visible,
-    withAttr,
-    withBorderStyle,
-    (<+>),
-    (<=>),
+  ( (<=>),
   )
 import qualified Brick.Widgets.Core as C
 import qualified Brick.Widgets.Edit as E
 import Control.Lens (makeLenses, (&), (.~), (^.))
 import Control.Monad.IO.Class (MonadIO (liftIO))
-import qualified Controller as CONTROLLER (initAppState, mandelbrot, play)
+import qualified Controller as CONTROLLER (initAppState, mandelbrot, play, updateCurrentTrackInfo)
+import Data.List (intercalate)
 import Graphics.Vty (refresh)
 import qualified Graphics.Vty as V
+import Utils.MaybeUtils ((?:))
 import Widgets.ImageWidget (greedyRectangularImageWidget)
 
 data Event
@@ -107,7 +94,7 @@ tuiMain = do
   let chan = state ^. eventChannel
   let builder = V.mkVty V.defaultConfig
   initialVty <- builder
-  customMain initialVty builder (Just chan) app state
+  _ <- customMain initialVty builder (Just chan) app state
   return ()
 
 newUIState :: IO UIState
@@ -130,13 +117,22 @@ drawMusic :: UIState -> Widget n
 drawMusic ui = withBorderStyle BS.unicode $ B.borderWithLabel (str "FFP Music Player") $ (C.center (drawAlbumCover ui) <+> B.vBorder <+> drawInfo ui)
 
 drawInfo :: UIState -> Widget n
-drawInfo ui = vBox [C.center (str "Title"), C.center (str "Song"), C.center (str "Artist"), C.center (str "Review")]
+drawInfo ui =
+  C.center $
+    C.padLeft (Pad 1) $
+      vBox
+        [ str $ "Track: " ++ (ui ^. (appState . trackName) ?: ""),
+          str $ "Artists: " ++ intercalate ", " (ui ^. (appState . artistNames)),
+          str $ "Album: " ++ (ui ^. (appState . albumName) ?: ""),
+          str $ "Review: "
+        ]
 
 drawAlbumCover :: UIState -> Widget n
 drawAlbumCover ui = do
   let image = ui ^. (appState . albumCover)
   B.border $ greedyRectangularImageWidget image
 
+drawFunction :: Widget n
 drawFunction =
   C.vLimit 3 $
     C.center $
@@ -144,12 +140,16 @@ drawFunction =
 
 -- padRight (Pad 2) drawPrevious <+> padRight (Pad 2) drawPause <+> padRight (Pad 2) withAttr $ playAttr . visible  <+> padRight (Pad 2) drawNext
 
+drawPlay :: Widget n
 drawPlay = withAttr playAttr $ str "Play"
 
+drawStop :: Widget n
 drawStop = withAttr stopAttr $ str "Stop"
 
+drawNext :: Widget n
 drawNext = withAttr nextAttr $ str "Next"
 
+drawPrevious :: Widget n
 drawPrevious = withAttr previousAttr $ str "Previous"
 
 drawSearch :: Bool -> Widget n
@@ -173,6 +173,9 @@ handleEvent ui (VtyEvent (V.EvKey (V.KChar 'm') [V.MMeta])) = do
   -- easter egg, Key: Alt + M
   sendEvent MarkAlbumCoverDirty ui
   exec CONTROLLER.mandelbrot ui
+handleEvent ui (VtyEvent (V.EvKey (V.KChar 'u') [])) = do
+  sendEvent MarkAlbumCoverDirty ui
+  exec CONTROLLER.updateCurrentTrackInfo ui
 handleEvent ui (VtyEvent (V.EvKey (V.KChar 'q') [])) = halt ui
 handleEvent ui _ = continue ui
 
