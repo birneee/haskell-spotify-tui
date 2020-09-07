@@ -26,16 +26,14 @@ import ApiObjects.Track
     trackName,
     uri,
   )
-import Control.Applicative (Alternative (empty, (<|>)))
-import Control.Lens ((^.), _1)
+import Control.Applicative (Alternative ((<|>)))
+import Control.Lens ((^.), (^?), _1, _Just)
 import Control.Monad (void)
 import Controller (requestAccessToken)
 import Data.List (intercalate)
 import System.Environment (getArgs)
 import System.Exit (die, exitSuccess)
 import TUI (tuiMain)
-import Text.Read (readMaybe)
-import Utils.LensUtils ((?^.))
 import Utils.Parser
   ( Parser,
     endParser,
@@ -54,7 +52,7 @@ cliMain :: IO ()
 cliMain = do
   args <- getArgs
   let argString = intercalate " " args
-  let option = (runParser optionParser argString) ?^. _1
+  let option = (runParser optionParser argString) ^? (_Just . _1)
   case option of
     Nothing -> invalidOptions
     Just option' -> case option' of

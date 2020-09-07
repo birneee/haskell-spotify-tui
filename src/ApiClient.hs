@@ -20,8 +20,8 @@ import ApiObjects.SearchResponse (SearchResponse)
 import ApiObjects.Track (Uri, album)
 import Codec.Picture.Types (Image, PixelRGB8)
 import Control.Lens (ix, (^?), _Just)
-import Control.Lens.Getter (view, (^.))
-import Control.Lens.Operators ((&), (<&>))
+import Control.Lens.Getter ((^.))
+import Control.Lens.Operators ((<&>))
 import Control.Lens.Setter ((.~))
 import Data.Aeson (decode, object, (.=))
 import Network.HTTP.Client
@@ -32,7 +32,6 @@ import Network.HTTP.Client
 import Network.HTTP.Client.TLS (tlsManagerSettings)
 import Network.HTTP.Types (Status)
 import Utils.HttpUtils (getImage)
-import Utils.LensUtils ((?^.), (?^.?))
 import Utils.RequestLenses
   ( jsonBody,
     method,
@@ -40,7 +39,6 @@ import Utils.RequestLenses
     requestHeaders,
   )
 import Utils.ResponseLenses (body, status)
-import Utils.StringUtils (pack)
 
 play :: AccessToken -> IO Status
 play accessToken = do
