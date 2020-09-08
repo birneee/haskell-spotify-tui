@@ -1,83 +1,83 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Persistence where
 
-import Control.Lens (makeLenses, (^.), (.~), (&))
-import Utils.MaybeUtils ((?:))
-import           ApiObjects.RefreshToken  (RefreshToken) 
-
-import           Utils.StringUtils
-
-import           Data.Aeson
+import ApiObjects.RefreshToken (RefreshToken)
+import Control.Applicative (optional)
+import Control.Exception.Base (SomeException, try)
+import Control.Lens (makeLenses, (&), (.~), (^.))
+import Data.Aeson
+  ( FromJSON (parseJSON),
+    KeyValue ((.=)),
+    ToJSON (toEncoding, toJSON),
+    Value (Object),
+    decodeFileStrict,
+    encode,
+    object,
+    pairs,
+    (.:),
+  )
 import qualified Data.ByteString.Lazy as B
-import qualified Data.HashMap.Strict as HM
+import Utils.MaybeUtils ((?:))
+import Utils.StringUtils (Packable (pack), Unpackable (unpack))
 
-data ConfigItem = 
-    ConfigItem {
-        _clientId :: Maybe String -- um die Lens unterscheiden
-      , _clientSecret :: Maybe String
-      , _refreshToken :: Maybe RefreshToken} deriving(Show, Eq)
+data ConfigItem = ConfigItem
+  { _clientId :: Maybe String, -- um die Lens unterscheiden
+    _clientSecret :: Maybe String,
+    _refreshToken :: Maybe RefreshToken
+  }
+  deriving (Show, Eq)
 
 $(makeLenses ''ConfigItem)
 
 instance FromJSON ConfigItem where
-    parseJSON (Object v) =  ConfigItem
-        <$> v .: "clientId"
-        <*> v .: "clientSecret" 
-        <*> (pack  <$> v .: "refreshToken")
+  parseJSON (Object v) =
+    ConfigItem
+      <$> optional (v .: "clientId")
+      <*> optional (v .: "clientSecret")
+      <*> optional (pack <$> v .: "refreshToken")
 
 instance ToJSON ConfigItem where
-    toJSON (ConfigItem clientId' clientSecret' refreshToken') =
-        object ["clientId" .= clientId'
-        , "clientSecret" .= clientSecret'
-        , "refreshToken" .= unpack refreshToken']
-    toEncoding (ConfigItem clientId' clientSecret' refreshToken') =
-        pairs ("clientId" .= clientId'
-        <> "clientSecret" .= clientSecret'
-        <> "refreshToken" .= unpack refreshToken')
+  toJSON (ConfigItem clientId' clientSecret' refreshToken') =
+    object
+      [ "clientId" .= clientId',
+        "clientSecret" .= clientSecret',
+        "refreshToken" .= (unpack <$> refreshToken')
+      ]
+  toEncoding (ConfigItem clientId' clientSecret' refreshToken') =
+    pairs
+      ( "clientId" .= clientId'
+          <> "clientSecret" .= clientSecret'
+          <> "refreshToken" .= (unpack <$> refreshToken')
+      )
 
 configFile :: FilePath
--- configFile = "config.json"
-configFile = "empty"
+configFile = "config.json"
 
 saveConfig :: ConfigItem -> IO ()
 saveConfig config = B.writeFile configFile (encode config)
-    
-loadConfig :: IO ConfigItem
-loadConfig = do 
-    input <- B.readFile configFile
-    return (decode input) ?: emptyConfig
 
+loadConfig :: IO ConfigItem
+loadConfig = do
+  input <- try $ decodeFileStrict configFile :: IO (Either SomeException (Maybe ConfigItem))
+  case input of
+    Left _ -> return emptyConfig
+    Right input' -> return $ input' ?: emptyConfig
+
+-- | create an empty config
 emptyConfig :: ConfigItem
 emptyConfig = ConfigItem Nothing Nothing Nothing
 
--- update :: RefreshToken -> ConfigItem -> RefreshToken -> Value
--- update refreshToken content = 
---   Object $ HM.insert "refreshToken" refreshToken content
-
+-- | Save refresh token in file "config.json"
 saveRefreshToken :: RefreshToken -> IO ()
--- |Save refresh token in file
--- |TODO use config.json file
 saveRefreshToken refreshToken' = do
   content <- loadConfig
-  undefined
-  -- let config' = case content of
-  --     Nothing -> content 
-  --     Just config -> content & refreshToken .~ refreshToken'
-  --     update refreshToken content
+  let content' = content & refreshToken .~ Just refreshToken'
+  saveConfig content'
 
-  --     saveConfig config
-
-
--- | Get refresh token from file "refresh_token.tmp"
--- TODO load from persistent config.json file
+-- | Get refresh token from file "config.json"
 loadRefreshToken :: IO (Maybe RefreshToken)
 loadRefreshToken = do
   content <- loadConfig
-  case content of
-    Nothing -> return Nothing
-    Just config -> return $ Just $ config ^. refreshToken
-  -- return $ Just $ _refreshToken content
-  -- let r' =  $ Just content ^. refreshToken
-  -- return r' 
+  return $ content ^. refreshToken
