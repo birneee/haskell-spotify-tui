@@ -24,13 +24,34 @@ greedyRectangularImageWidget image = Widget width height render'
     height = Greedy
     render' = do
       c <- getContext
-      let width = floorToEven $ c ^. availWidthL
-      let height = c ^. availHeightL * 2
-      let size = min width height
+      let width' = floorToEven $ c ^. availWidthL
+      let height' = c ^. availHeightL * 2
+      let size = min width' height'
       render $ imageWidgetOfSize size size image
 
+-- | Only support 240 colors
 imageWidget240 :: Image PixelRGB8 -> Widget n
 imageWidget240 image = raw $ imageToVty240 image
+
+-- | Image height has to be even
+-- Only support 240 colors
+imageWidget240OfSize :: Int -> Int -> Image PixelRGB8 -> Widget n
+imageWidget240OfSize width height image = do
+  let scaled = scaleBilinear width height image
+  imageWidget240 scaled
+
+-- | Only support 240 colors
+greedyRectangularImageWidget240 :: Image PixelRGB8 -> Widget n
+greedyRectangularImageWidget240 image = Widget width height render'
+  where
+    width = Greedy
+    height = Greedy
+    render' = do
+      c <- getContext
+      let width' = floorToEven $ c ^. availWidthL
+      let height' = c ^. availHeightL * 2
+      let size = min width' height'
+      render $ imageWidget240OfSize size size image
 
 -- helper
 

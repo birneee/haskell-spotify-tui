@@ -61,8 +61,8 @@ cliMain = do
       Info -> info
       Devices -> devices
       Play -> play
-      PlayTrack uri -> playTrack uri
-      PlayOnDevice deviceId -> playOnDevice deviceId
+      PlayTrack uri' -> playTrack uri'
+      PlayOnDevice deviceId' -> playOnDevice deviceId'
       Pause -> pause
       Next -> next
       Previous -> previous
@@ -211,7 +211,7 @@ info = do
   case (status ^. code, response) of
     (200, Just response') -> printInfo response'
     (204, _) -> die $ "Currently nothing is playing"
-    (code@_, _) -> exitWithUnknownHttpStatus $ code
+    (code'@_, _) -> exitWithUnknownHttpStatus $ code'
   where
     printInfo :: PlayerResponse -> IO ()
     printInfo response = do
@@ -226,10 +226,10 @@ info = do
       putStrLn $ "🧑 Artists   \t" ++ intercalate ", " ((^. artistName) <$> track ^. artists)
       putStrLn $ "🆔 Track URI\t" ++ track ^. uri
     printDeviceInfo :: Device -> IO ()
-    printDeviceInfo device = do
-      putStrLn $ "📾  Device  \t" ++ device ^. deviceName ++ " (" ++ device ^. deviceType ++ ")"
-      putStrLn $ "🎚️  Volume   \t" ++ show (device ^. volumePercent) ++ "%"
-      putStrLn $ "🆔 Device ID\t" ++ (device ^. deviceId)
+    printDeviceInfo device' = do
+      putStrLn $ "📾  Device  \t" ++ device' ^. deviceName ++ " (" ++ device' ^. deviceType ++ ")"
+      putStrLn $ "🎚️  Volume   \t" ++ show (device' ^. volumePercent) ++ "%"
+      putStrLn $ "🆔 Device ID\t" ++ (device' ^. deviceId)
 
 devices :: IO ()
 devices = do
@@ -237,54 +237,54 @@ devices = do
   (status, response) <- API.getAvailableDevices accessToken
   case (status ^. code, response) of
     (200, Just response') -> printDevices (response' ^. DR.devices) >> exitSuccess
-    (code@_, _) -> exitWithUnknownHttpStatus $ code
+    (code'@_, _) -> exitWithUnknownHttpStatus $ code'
   where
     printDevices :: [Device] -> IO ()
-    printDevices devices = void $ sequenceA $ printDevice <$> devices
+    printDevices devices' = void $ sequenceA $ printDevice <$> devices'
     printDevice :: Device -> IO ()
-    printDevice device = do
-      let symbol = deviceSymbol $ device ^. deviceType
-      putStrLn $ ansiBold (device ^. deviceName ++ " ") ++ pure symbol
-      putStrLn $ "Active   \t" ++ show (device ^. isActive)
-      putStrLn $ "Volume   \t" ++ show (device ^. volumePercent) ++ "%"
-      putStrLn $ "Device Type \t" ++ device ^. deviceType
-      putStrLn $ "Device ID\t" ++ (device ^. deviceId) ++ "\n"
+    printDevice device' = do
+      let symbol = deviceSymbol $ device' ^. deviceType
+      putStrLn $ ansiBold (device' ^. deviceName ++ " ") ++ pure symbol
+      putStrLn $ "Active   \t" ++ show (device' ^. isActive)
+      putStrLn $ "Volume   \t" ++ show (device' ^. volumePercent) ++ "%"
+      putStrLn $ "Device Type \t" ++ device' ^. deviceType
+      putStrLn $ "Device ID\t" ++ (device' ^. deviceId) ++ "\n"
 
 play :: IO ()
 play = do
   accessToken <- requestAccessToken
   status <- API.play accessToken
   case (status ^. code) of
-    code@_ | code == 202 || code == 204 -> putStrLn "▶ Started Playback" >> exitSuccess
+    code'@_ | code' == 202 || code' == 204 -> putStrLn "▶ Started Playback" >> exitSuccess
     403 -> putStrLn "Playback cannot be started, the song may already be playing" >> exitSuccess
     404 -> die $ "No active devices found"
-    code@_ -> exitWithUnknownHttpStatus code
+    code'@_ -> exitWithUnknownHttpStatus code'
 
 playTrack :: Uri -> IO ()
-playTrack uri = do
+playTrack uri' = do
   accessToken <- requestAccessToken
-  status <- API.playTrack accessToken uri
+  status <- API.playTrack accessToken uri'
   case (status ^. code) of
-    code@_ | code == 202 || code == 204 -> putStrLn "▶ Playing Song" >> exitSuccess
-    code@_ -> exitWithUnknownHttpStatus code
+    code'@_ | code' == 202 || code' == 204 -> putStrLn "▶ Playing Song" >> exitSuccess
+    code'@_ -> exitWithUnknownHttpStatus code'
 
 playOnDevice :: DeviceId -> IO ()
-playOnDevice deviceId = do
+playOnDevice deviceId' = do
   accessToken <- requestAccessToken
-  status <- API.setPlayer accessToken deviceId
+  status <- API.setPlayer accessToken deviceId'
   case (status ^. code) of
-    code@_ | code == 202 || code == 204 -> putStrLn "📾  Set Device" >> exitSuccess
-    code@_ -> exitWithUnknownHttpStatus code
+    code'@_ | code' == 202 || code' == 204 -> putStrLn "📾  Set Device" >> exitSuccess
+    code'@_ -> exitWithUnknownHttpStatus code'
 
 pause :: IO ()
 pause = do
   accessToken <- requestAccessToken
   status <- API.pause accessToken
   case (status ^. code) of
-    code@_ | code == 202 || code == 204 -> putStrLn "⏸ Paused Playback" >> exitSuccess
+    code'@_ | code' == 202 || code' == 204 -> putStrLn "⏸ Paused Playback" >> exitSuccess
     403 -> putStrLn "Playback cannot be paused, the song may already be paused" >> exitSuccess
     404 -> die $ "No active devices found"
-    code@_ -> exitWithUnknownHttpStatus code
+    code'@_ -> exitWithUnknownHttpStatus code'
 
 next :: IO ()
 next = do
@@ -293,7 +293,7 @@ next = do
   case (status ^. code) of
     204 -> putStrLn "⏭️ Skipped to next track" >> exitSuccess
     404 -> die $ "No active devices found"
-    code@_ -> exitWithUnknownHttpStatus code
+    code'@_ -> exitWithUnknownHttpStatus code'
 
 previous :: IO ()
 previous = do
@@ -302,7 +302,7 @@ previous = do
   case (status ^. code) of
     204 -> putStrLn "⏮️ Skipped to previous track" >> exitSuccess
     404 -> die $ "No active devices found"
-    code@_ -> exitWithUnknownHttpStatus code
+    code'@_ -> exitWithUnknownHttpStatus code'
 
 getVolume :: IO ()
 getVolume = do
@@ -311,7 +311,7 @@ getVolume = do
   case (status ^. code, response) of
     (200, Just response') -> printVolume response'
     (204, _) -> die $ "No active devices found"
-    (code@_, _) -> exitWithUnknownHttpStatus $ code
+    (code'@_, _) -> exitWithUnknownHttpStatus $ code'
   where
     printVolume :: PlayerResponse -> IO ()
     printVolume response = do
@@ -326,7 +326,7 @@ setVolume value = do
     204 -> putStrLn ("🎚️ Set volume to " ++ (show value) ++ "%") >> exitSuccess
     400 -> die $ "Illegal value"
     404 -> die $ "No active devices found"
-    code@_ -> exitWithUnknownHttpStatus code
+    code'@_ -> exitWithUnknownHttpStatus code'
 
 exitWithUnknownHttpStatus :: Int -> IO ()
 exitWithUnknownHttpStatus statusCode = die $ "An unknown error occured (http status code:" ++ show statusCode ++ ")"

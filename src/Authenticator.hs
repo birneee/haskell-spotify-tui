@@ -50,14 +50,11 @@ import Utils.ResponseLenses (body)
 import Utils.StringUtils (Packable (pack), Unpackable (unpack))
 import Web.Browser (openBrowser)
 
--- | TODO load from config file
-clientId :: String
-clientId = "f6ee1f37d5ab4dfba595af9e7885e08c"
+type ClientId = String
 
--- | TODO load from config file
-clientSecret :: String
-clientSecret = "adf60940a07f46908c3c457a4d147713"
+type ClientSecret = String
 
+-- | TODO make port configurable
 redirectUrl :: String
 redirectUrl = "http://localhost:8888/callback"
 
@@ -71,8 +68,8 @@ scopes =
       "user-read-playback-state"
     ]
 
-getAuthorizationCode :: IO AuthorizationCode
-getAuthorizationCode = do
+getAuthorizationCode :: ClientId -> IO AuthorizationCode
+getAuthorizationCode clientId = do
   request <-
     parseRequest "https://accounts.spotify.com/authorize"
       <&> method
@@ -83,12 +80,12 @@ getAuthorizationCode = do
            ("response_type", Just "code"),
            ("scope", Just scopes)
          ]
-  --putStrLn $ "open this url in browser: " ++ toUrl request
+  putStrLn $ "open url in browser, if not opened automatically: " ++ toUrl request
   _ <- openBrowser $ toUrl request
   pack <$> awaitAuthorizationCallback
 
-getRefreshToken :: AuthorizationCode -> IO RefreshToken
-getRefreshToken ac = do
+getRefreshToken :: ClientId -> ClientSecret -> AuthorizationCode -> IO RefreshToken
+getRefreshToken clientId clientSecret ac = do
   request <-
     parseRequest "https://accounts.spotify.com/api/token"
       <&> method
@@ -106,8 +103,8 @@ getRefreshToken ac = do
   let tr = fromJust $ decode rawBody
   return $ tr ^. refreshToken
 
-getAccessToken :: RefreshToken -> IO AccessToken
-getAccessToken rt = do
+getAccessToken :: ClientId -> ClientSecret -> RefreshToken -> IO AccessToken
+getAccessToken clientId clientSecret rt = do
   request <-
     parseRequest "https://accounts.spotify.com/api/token"
       <&> method
@@ -139,8 +136,8 @@ authorizationCallbackServer codeMVar request sendResponse = do
   let code = getRequestQueryParam "code" request
   let path = rawPathInfo request
   case (path, code) of
-    ("/callback", Just code) -> do
-      putMVar codeMVar code
+    ("/callback", Just code') -> do
+      putMVar codeMVar code'
       sendResponse $
         responseLBS
           status200
