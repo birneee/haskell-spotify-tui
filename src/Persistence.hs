@@ -58,11 +58,12 @@ configFile = "config.json"
 saveConfig :: ConfigItem -> IO ()
 saveConfig config = B.writeFile configFile (encode config)
 
+-- | File is created if it does not exist
 loadConfig :: IO ConfigItem
 loadConfig = do
   input <- try $ decodeFileStrict configFile :: IO (Either SomeException (Maybe ConfigItem))
   case input of
-    Left _ -> return emptyConfig
+    Left _ -> saveConfig emptyConfig >> return emptyConfig
     Right input' -> return $ input' ?: emptyConfig
 
 -- | create an empty config

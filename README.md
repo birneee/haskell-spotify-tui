@@ -1,5 +1,26 @@
 # Haskell Spotify TUI <br/> FFP-Project 
 
+## Requirements
+- Stack installation
+- Spotify Account
+
+> :warning: App is only tested in Gnome Terminal with a Spotify Premium Account
+
+## Setup
+1. Create a Spotify App (https://developer.spotify.com/dashboard)
+  - add Redirect URIs: http://localhost:8888/callback
+  - copy clientId and clientSecret to `config.json` file
+    - `config.json` is created on first run in current directory
+2. Run application and login to Spotify (browser should open automatically)
+
+Example config.json:
+```json
+{
+    "clientId": "<clientId>",
+    "clientSecret": "<clientSecret>"
+}
+```
+
 ## Run
 
 ```sh

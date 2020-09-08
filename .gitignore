@@ -2,7 +2,6 @@
 *~
 *.hi
 *.o
-refresh_token.tmp
-FFP-Project.cabal
+/FFP-Project.cabal
 /dist
-settings.json
+/config.json

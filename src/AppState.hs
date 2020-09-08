@@ -15,7 +15,11 @@ data AppState = AppState
   { _accessToken :: AccessToken,
     _isPlaying :: Bool,
     _deviceId :: Maybe DeviceId,
+    _deviceName :: Maybe String,
+    _deviceType :: Maybe String,
+    _deviceVolumePercent :: Maybe Int,
     _trackName :: Maybe String,
+    _trackPopularity :: Maybe Int,
     _albumName :: Maybe String,
     _artistNames :: [String],
     _albumCoverUrl :: Maybe String,
@@ -24,8 +28,8 @@ data AppState = AppState
     _searchInput :: String,
     _searchResults :: [Track],
     _selectedSearchResultIndex :: Int,
-    _progressMs :: Int,
-    _durationMs :: Int
+    _progressMs :: Maybe Int,
+    _durationMs :: Maybe Int
   }
   deriving (Show)
 

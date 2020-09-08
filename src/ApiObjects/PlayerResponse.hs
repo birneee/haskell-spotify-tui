@@ -9,10 +9,11 @@ import Control.Applicative (optional)
 import Control.Lens (makeLenses)
 import Data.Aeson (FromJSON, parseJSON, withObject, (.:))
 
+-- | source https://developer.spotify.com/documentation/web-api/reference/player/get-information-about-the-users-current-playback/
 data PlayerResponse = PlayerResponse
   { _timestamp :: Int,
     _device :: Device,
-    _progressMs :: Maybe String,
+    _progressMs :: Maybe Int,
     _isPlaying :: Bool,
     _currentlyPlayingType :: String,
     _item :: Maybe Track,
