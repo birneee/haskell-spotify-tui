@@ -11,8 +11,10 @@ import AppState
   ( AppState,
     AppStateIO,
     albumCover,
+    durationMs,
     execAppStateIO,
     isPlaying,
+    progressMs,
     searchInput,
     searchResults,
     selectedSearchResultIndex,
@@ -162,7 +164,7 @@ drawUI :: UIState -> [Widget Name]
 drawUI ui = [C.center $ drawMain ui]
 
 drawMain :: UIState -> Widget Name
-drawMain ui = vLimit 100 $ vBox [drawMusic ui, drawFunction ui, drawHelp]
+drawMain ui = vLimit 100 $ vBox [drawMusic ui, drawFunction ui, drawProgressBar ui, drawHelp]
 
 drawMusic :: UIState -> Widget Name
 drawMusic ui = withBorderStyle BS.unicode $ B.borderWithLabel (str "Haskell Spotify TUI") $ (C.center (drawAlbumCover ui) <+> B.vBorder <+> C.center (drawRight ui))
@@ -233,7 +235,12 @@ drawPlay ui
   | otherwise = withAttr pAttr $ str "Play"
 
 drawProgressBar :: UIState -> Widget Name
-drawProgressBar ui = P.progressBar (Just "X") 0
+drawProgressBar ui = do
+  let currentTrack = ui ^. (appState . APPSTATE.trackName)
+  -- let trackTotalDuration =
+  let totalDuration = ui ^. (appState . durationMs)
+  -- let currentDuration = ui ^. (appState . progressMs)
+  P.progressBar (Just "X") 0
 
 drawStop :: Widget n
 drawStop = withAttr stopAttr $ str "Stop"
