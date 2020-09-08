@@ -11,6 +11,8 @@ import AppState
   ( AppState,
     AppStateIO,
     albumCover,
+    deviceName,
+    deviceVolumePercent,
     execAppStateIO,
     isPlaying,
     searchInput,
@@ -18,7 +20,7 @@ import AppState
     selectedSearchResultIndex,
     showSearch,
   )
-import qualified AppState as APPSTATE (albumName, artistNames, trackName)
+import qualified AppState as APPSTATE (albumName, artistNames, trackName, trackPopularity)
 import Brick
   ( App (..),
     AttrMap,
@@ -60,7 +62,7 @@ import qualified Brick.Widgets.List as L
 import Control.Lens (makeLenses, over, (%~), (&), (.~), (^.))
 import Control.Monad.IO.Class (MonadIO (liftIO))
 import qualified Controller as CONTROLLER
-  ( initAppState,
+  (volumeDown, volumeUp,  initAppState,
     mandelbrot,
     next,
     pause,
@@ -68,6 +70,7 @@ import qualified Controller as CONTROLLER
     playSelectedTrack,
     previous,
     search,
+    toggleDevice,
     updateCurrentTrackInfo,
   )
 import Data.List (intercalate)
@@ -75,7 +78,8 @@ import qualified Data.Vector as Vec
 import Graphics.Vty (Vty (refresh))
 import qualified Graphics.Vty as V
 import Utils.MaybeUtils ((?:))
-import Widgets.ImageWidget (greedyRectangularImageWidget)
+import Widgets.ImageWidget (greedyRectangularImageWidget, greedyRectangularImageWidget240)
+import Widgets.Right (right)
 
 data Event
   = -- | forces vty to redraw album cover
@@ -150,15 +154,21 @@ tuiMain = do
 
 newUIState :: IO UIState
 newUIState = do
-  appState <- CONTROLLER.initAppState
-  eventChannel <- newBChan 10
-  return $ UIState (E.editor SearchEdit Nothing "") appState (L.list ResultList (Vec.fromList []) 1) eventChannel
+  appState' <- CONTROLLER.initAppState
+  eventChannel' <- newBChan 10
+  return $ UIState (E.editor SearchEdit Nothing "") appState' (L.list ResultList (Vec.fromList []) 1) eventChannel'
 
 drawUI :: UIState -> [Widget Name]
 drawUI ui = [C.center $ drawMain ui]
 
 drawMain :: UIState -> Widget Name
-drawMain ui = vLimit 100 $ vBox [drawMusic ui, drawFunction ui, drawHelp]
+drawMain ui = vLimit 100 $ vBox [drawDevice ui, drawMusic ui, drawFunction ui, drawHelp]
+
+drawDevice :: UIState -> Widget Name
+drawDevice ui =
+  right $
+    str (ui ^. (appState . deviceName) ?: "No Device")
+      <+> C.padLeft (Pad 2) (str ("Volume: " ++ show (ui ^. (appState . deviceVolumePercent) ?: 0) ++ "%"))
 
 drawMusic :: UIState -> Widget Name
 drawMusic ui = withBorderStyle BS.unicode $ B.borderWithLabel (str "Haskell Spotify TUI") $ (C.center (drawAlbumCover ui) <+> B.vBorder <+> C.center (drawRight ui))
@@ -168,7 +178,7 @@ drawRight ui
   | ui ^. appState ^. showSearch = drawSearch ui
   | otherwise = drawInfo ui
 
-drawInfo :: UIState -> Widget n
+drawInfo :: UIState -> Widget Name
 drawInfo ui =
   C.center $
     C.padLeft (Pad 1) $
@@ -176,24 +186,40 @@ drawInfo ui =
         [ str $ "Track: " ++ (ui ^. (appState . APPSTATE.trackName) ?: ""),
           str $ "Artists: " ++ intercalate ", " (ui ^. (appState . APPSTATE.artistNames)),
           str $ "Album: " ++ (ui ^. (appState . APPSTATE.albumName) ?: ""),
-          str $ "Review: "
+          str "Popularity: " <+> drawPopularity ui
         ]
+
+drawPopularity :: UIState -> Widget Name
+drawPopularity ui =
+  str $
+    (take starNum $ repeat star)
+      ++ (take (5 - starNum) $ repeat emptyStar)
+  where
+    starNum = round $ (fromIntegral popularity) / (20.0 :: Float)
+    popularity = ui ^. (appState . APPSTATE.trackPopularity) ?: 0
+    star = '★'
+    emptyStar = '☆'
 
 drawAlbumCover :: UIState -> Widget Name
 drawAlbumCover ui = do
-  let image = ui ^. appState ^. albumCover
-  B.border $ greedyRectangularImageWidget image
+  let image = ui ^. (appState . albumCover)
+  B.border $
+    if ui ^. (appState . showSearch)
+      then greedyRectangularImageWidget240 image
+      else greedyRectangularImageWidget image
 
 drawFunction :: UIState -> Widget Name
 drawFunction ui =
   C.vLimit 3 $
     C.center $
-      padRight (Pad 2) drawPrevious <+> padRight (Pad 2) drawStop <+> padRight (Pad 2) (drawPlay ui) <+> padRight (Pad 2) drawNext
+      padRight (Pad 2) drawPrevious 
+      <+> padRight (Pad 2) (drawPlay ui) 
+      <+> padRight (Pad 2) drawNext
 
 drawSearch :: UIState -> Widget Name
 drawSearch ui =
-  str "Search " <+> (vLimit 1 $ E.renderEditor (str . unlines) True (ui ^. edit))
-    <=> (C.strWrap "Track" <+> C.strWrap "Artists" <+> C.strWrap "Album")
+  C.padLeftRight 1 (str "Search " <+> (vLimit 1 $ E.renderEditor (str . unlines) True (ui ^. edit)))
+    <=> (C.hCenter (str "Track") <+> C.hCenter (str "Artists") <+> C.hCenter (str "Album"))
     <=> viewport VPResultList T.Vertical (visible $ vLimit 20 $ drawResult ui) --TODO: call drawResult <=>
 
 trackToSearchResultListItem :: Track -> SearchResultListItem
@@ -225,11 +251,8 @@ listDrawElement sel item =
 
 drawPlay :: UIState -> Widget Name
 drawPlay ui
-  | ui ^. appState ^. isPlaying = withAttr playAttr $ str "Play"
-  | otherwise = withAttr pAttr $ str "Play"
-
-drawStop :: Widget n
-drawStop = withAttr stopAttr $ str "Stop"
+  | ui ^. appState ^. isPlaying = withAttr stopAttr $ str " ⏸ Stop "
+  | otherwise = withAttr pAttr $ str " ▶ Play "
 
 drawNext :: Widget n
 drawNext = withAttr nextAttr $ str "Next"
@@ -242,15 +265,18 @@ drawHelp = C.hBox $ draw <$> help
   where
     draw :: (String, String) -> Widget n
     draw (shortcut, description) =
-      padRight (Pad 3) $
+      padRight (Pad 2) $
         (withAttr shortcutAttr $ str shortcut)
           <+> (C.padLeft (Pad 1) $ str description)
     help :: [(String, String)]
     help =
       [ ("SPACE", "Play/Pause"),
-        ("B", "Previous Track"),
+        ("P", "Previous Track"),
         ("N", "Next Track"),
+        ("+", "Volume Up"),
+        ("-", "Volume Down"),
         ("ALT+F", "Search Track"),
+        ("ALT+D", "Change Device"),
         ("ESC", "Quit")
       ]
 
@@ -259,15 +285,8 @@ handleEvent ui (AppEvent MarkAlbumCoverDirty) = do
   vty <- getVtyHandle
   liftIO $ refresh vty
   continue ui
-handleEvent ui (VtyEvent (V.EvKey V.KDown [])) = do
-  sendEvent MarkAlbumCoverDirty ui
-  M.continue (ui & results %~ (\l -> L.listMoveDown l))
-handleEvent ui (VtyEvent (V.EvKey V.KUp [])) = do
-  sendEvent MarkAlbumCoverDirty ui
-  M.continue (ui & results %~ (\l -> L.listMoveUp l))
-handleEvent ui (VtyEvent (V.EvKey (V.KChar ' ') []))
-  | ui ^. appState ^. isPlaying = exec CONTROLLER.pause ui
-  | otherwise = exec CONTROLLER.play ui
+handleEvent ui (VtyEvent (V.EvKey V.KDown [])) = continue (ui & results %~ (\l -> L.listMoveDown l))
+handleEvent ui (VtyEvent (V.EvKey V.KUp [])) = continue (ui & results %~ (\l -> L.listMoveUp l))
 handleEvent ui (VtyEvent (V.EvKey (V.KEsc) []))
   | ui ^. (appState . showSearch) = do
     sendEvent MarkAlbumCoverDirty ui
@@ -276,22 +295,33 @@ handleEvent ui (VtyEvent (V.EvKey (V.KEsc) []))
 handleEvent ui (VtyEvent (V.EvKey (V.KChar 'f') [V.MMeta])) = do
   sendEvent MarkAlbumCoverDirty ui
   continue $ over (appState . showSearch) not ui
+handleEvent ui (VtyEvent (V.EvKey (V.KChar 'd') [V.MMeta])) = do
+  sendEvent MarkAlbumCoverDirty ui
+  exec CONTROLLER.toggleDevice ui
 handleEvent ui (VtyEvent (V.EvKey V.KEnter []))
   | ui ^. (appState . searchInput) == (head $ E.getEditContents $ ui ^. edit) = do
     let index = ui ^. (results . listSelectedL)
     case index of
       Just x -> do
         let ui' = ui & (appState . selectedSearchResultIndex) .~ x
+        sendEvent MarkAlbumCoverDirty ui
         exec CONTROLLER.playSelectedTrack ui'
       Nothing -> continue ui
   | ui ^. (appState . showSearch) = do
     sendEvent MarkAlbumCoverDirty ui
     search ui
 handleEvent ui (VtyEvent ev) | ui ^. appState ^. showSearch = continue =<< T.handleEventLensed ui edit E.handleEditorEvent ev -- for typing input
+handleEvent ui (VtyEvent (V.EvKey (V.KChar ' ') []))
+  | ui ^. appState ^. isPlaying = exec CONTROLLER.pause ui
+  | otherwise = do
+    sendEvent MarkAlbumCoverDirty ui
+    exec CONTROLLER.play ui
+handleEvent ui (VtyEvent (V.EvKey (V.KChar '+') [])) = exec CONTROLLER.volumeUp ui
+handleEvent ui (VtyEvent (V.EvKey (V.KChar '-') [])) = exec CONTROLLER.volumeDown ui
 handleEvent ui (VtyEvent (V.EvKey (V.KChar 'n') [])) = do
   sendEvent MarkAlbumCoverDirty ui
   exec CONTROLLER.next ui
-handleEvent ui (VtyEvent (V.EvKey (V.KChar 'b') [])) = do
+handleEvent ui (VtyEvent (V.EvKey (V.KChar 'p') [])) = do
   sendEvent MarkAlbumCoverDirty ui
   exec CONTROLLER.previous ui
 handleEvent ui (VtyEvent (V.EvKey (V.KChar 'm') [V.MMeta])) = do
