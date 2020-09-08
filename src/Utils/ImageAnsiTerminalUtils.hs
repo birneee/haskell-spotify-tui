@@ -107,4 +107,4 @@ stringWithEscapes str = VTY.HorizText VTY.defAttr (pack modStr) outputWidth char
     stripEscapes = unpack . stripAnsiEscapeCodes . pack
     workaround = repeatN "\ESC\ESCm" $ (length str - outputWidth)
     repeatN :: String -> Int -> String
-    repeatN str n = intercalate "" $ take n $ repeat str
+    repeatN str' n = intercalate "" $ take n $ repeat str'
