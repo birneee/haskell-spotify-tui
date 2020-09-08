@@ -2,7 +2,7 @@
 -- TODO request new refresh token if not valid
 module Controller where
 
-import qualified ApiClient as API (setVolume, getAvailableDevices, getCurrentAlbumCover, getPlayer, next, pause, play, playTrack, previous, searchTrack, setPlayer)
+import qualified ApiClient as API (getAvailableDevices, getCurrentAlbumCover, getPlayer, next, pause, play, playTrack, previous, searchTrack, setPlayer, setVolume)
 import ApiObjects.AccessToken (AccessToken)
 import qualified ApiObjects.Album as ALBUM (albumName, images)
 import qualified ApiObjects.Artist as ARTIST (artistName)
@@ -66,11 +66,14 @@ import Control.Monad.IO.Class (MonadIO (liftIO))
 import Data.List (elemIndex)
 import Data.Maybe (fromJust)
 import qualified Persistence as P
-  ( loadRefreshToken,
+  ( clientId,
+    clientSecret,
+    loadConfig,
+    loadRefreshToken,
     saveRefreshToken,
   )
 import Utils.ImageGenerator (generateMandelbrotImage, generateRainbowImage)
-import Utils.MaybeUtils ((?:))
+import Utils.MaybeUtils (forceMaybeMsg, (?:))
 import Utils.StatusLenses (code)
 
 -- | placeholder that is displayed when no album cover is available
@@ -235,7 +238,7 @@ toggleDevice = do
           ci <- currentDeviceIndex
           return ((cycle ids) ^? (ix (ci + 1)))
 
--- | TODO handle error 
+-- | TODO handle error
 volumeUp :: AppStateIO ()
 volumeUp = do
   at <- use accessToken
@@ -246,8 +249,7 @@ volumeUp = do
       _ <- liftIO $ API.setVolume at (volume + 5)
       updateCurrentTrackInfo
 
--- | TODO handle error 
-
+-- | TODO handle error
 volumeDown :: AppStateIO ()
 volumeDown = do
   at <- use accessToken
@@ -267,7 +269,13 @@ mandelbrot = do
 
 -- | Request new access token on Spotify API
 requestAccessToken :: IO AccessToken
-requestAccessToken = loadRefreshToken >>= A.getAccessToken
+requestAccessToken = do
+  config <- P.loadConfig
+  let clientId = forceMaybeMsg clientIdErrorMsg $ config ^. P.clientId
+  let clientSecret = forceMaybeMsg clientSecretErrorMsg $ config ^. P.clientSecret
+  rt <- loadRefreshToken
+  A.getAccessToken clientId clientSecret rt
+  where
 
 -- | Load refresh token from file or request a new one from the Spotify API
 loadRefreshToken :: IO RefreshToken
@@ -276,6 +284,16 @@ loadRefreshToken = do
   case rt of
     Just rt' -> return rt'
     Nothing -> do
-      rt' <- A.getAuthorizationCode >>= A.getRefreshToken
+      config <- P.loadConfig
+      let clientId = forceMaybeMsg clientIdErrorMsg $ config ^. P.clientId
+      let clientSecret = forceMaybeMsg clientSecretErrorMsg $ config ^. P.clientSecret
+      ac <- A.getAuthorizationCode clientId
+      rt' <- A.getRefreshToken clientId clientSecret ac
       P.saveRefreshToken rt'
       return rt'
+
+clientIdErrorMsg :: String
+clientIdErrorMsg = "failed to load clientId. ClientId has to be manually set in config.json. Please read README.md for further instructions"
+
+clientSecretErrorMsg :: String
+clientSecretErrorMsg = "failed to load clientSecret. ClientSecret has to be manually set in config.json. Please read README.md for further instructions"
