@@ -32,3 +32,4 @@ instance FromJSON Tracks where
       <$> (v .: "items")
 
 $(makeLenses ''SearchResponse)
+$(makeLenses ''Tracks)

@@ -4,7 +4,7 @@
 module Persistence where
 
 import Control.Lens (makeLenses, (^.), (.~), (&))
-
+import Utils.MaybeUtils ((?:))
 import           ApiObjects.RefreshToken  (RefreshToken) 
 
 import           Utils.StringUtils
@@ -70,9 +70,9 @@ saveRefreshToken refreshToken' = do
   --     saveConfig config
 
 
+-- | Get refresh token from file "refresh_token.tmp"
+-- TODO load from persistent config.json file
 loadRefreshToken :: IO (Maybe RefreshToken)
--- |Get refresh token from file "refresh_token.tmp"
--- |TODO load from persistent config.json file
 loadRefreshToken = do
   content <- loadConfig
   case content of

@@ -11,7 +11,7 @@ data Artist = Artist
   { _artistId :: String,
     _artistName :: String
   }
-  deriving (Show)
+  deriving (Show, Eq)
 
 instance FromJSON Artist where
   parseJSON = withObject "Artist" $ \v ->

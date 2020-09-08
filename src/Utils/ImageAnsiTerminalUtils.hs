@@ -101,7 +101,7 @@ imageToVty image = VTY.vertCat $ stringWithEscapes <$> lines (imageToAnsi image)
 stringWithEscapes :: String -> VTY.Image
 stringWithEscapes str = VTY.HorizText VTY.defAttr (pack modStr) outputWidth charWidth
   where
-    outputWidth = length $ stripEscapes str
+    outputWidth = VTY.safeWcswidth $ stripEscapes str
     charWidth = outputWidth
     modStr = workaround ++ str
     stripEscapes = unpack . stripAnsiEscapeCodes . pack

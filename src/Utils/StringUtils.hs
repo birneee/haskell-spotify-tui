@@ -1,7 +1,6 @@
 module Utils.StringUtils where
 
-import           Data.ByteString.Internal (ByteString, packChars, unpackChars)
-import           GHC.Exts                 (IsString (..))
+import Data.ByteString.Internal (ByteString, packChars, unpackChars)
 
 class Packable a where
   pack :: String -> a
