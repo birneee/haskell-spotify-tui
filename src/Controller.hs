@@ -132,6 +132,7 @@ play = do
         updateCurrentTrackInfo
       | otherwise -> return () -- TODO handle error
 
+
 playSelectedTrack :: AppStateIO ()
 playSelectedTrack = do
   index <- use selectedSearchResultIndex
@@ -238,9 +239,11 @@ toggleDevice = do
           did' <- use deviceId
           return $ (elemIndex (did' ?: ("")) ids) ?: (-1)
         nextDeviceId :: AppStateIO (Maybe DeviceId)
-        nextDeviceId = do
-          ci <- currentDeviceIndex
-          return ((cycle ids) ^? (ix (ci + 1)))
+        nextDeviceId = case ids of
+          [] -> return Nothing
+          _ -> do
+            ci <- currentDeviceIndex
+            return ((cycle ids) ^? (ix (ci + 1)))
 
 -- | TODO handle error
 volumeUp :: AppStateIO ()

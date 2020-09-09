@@ -116,19 +116,15 @@ theMap =
     V.defAttr
     [ (playAttr, V.white `on` V.green),
       (stopAttr, V.white `on` V.red),
-      (nextAttr, V.white `on` V.blue),
-      (previousAttr, V.white `on` V.cyan),
       (E.editAttr, V.white `on` V.black),
       (pAttr, V.black `on` V.green),
       (selectedAttr, V.white `on` V.magenta),
       (shortcutAttr, V.black `on` V.white)
     ]
 
-playAttr, stopAttr, nextAttr, previousAttr, pAttr, selectedAttr, shortcutAttr :: AttrName
+playAttr, stopAttr, pAttr, selectedAttr, shortcutAttr :: AttrName
 playAttr = "playAttr"
 stopAttr = "stopAttr"
-nextAttr = "nextAttr"
-previousAttr = "previousAttr"
 pAttr = "pAttr"
 selectedAttr = "selectedAttr"
 shortcutAttr = "shortcutAttr"
@@ -211,10 +207,7 @@ drawAlbumCover ui = do
 drawFunction :: UIState -> Widget Name
 drawFunction ui =
   C.vLimit 3 $
-    C.center $
-      padRight (Pad 2) drawPrevious 
-      <+> padRight (Pad 2) (drawPlay ui) 
-      <+> padRight (Pad 2) drawNext
+    C.center $ padRight (Pad 2) (drawPlay ui) 
 
 drawSearch :: UIState -> Widget Name
 drawSearch ui =
@@ -253,12 +246,6 @@ drawPlay :: UIState -> Widget Name
 drawPlay ui
   | ui ^. appState ^. isPlaying = withAttr stopAttr $ str " ⏸ Stop "
   | otherwise = withAttr pAttr $ str " ▶ Play "
-
-drawNext :: Widget n
-drawNext = withAttr nextAttr $ str "Next"
-
-drawPrevious :: Widget n
-drawPrevious = withAttr previousAttr $ str "Previous"
 
 drawHelp :: Widget n
 drawHelp = C.hBox $ draw <$> help
