@@ -21,6 +21,7 @@ import AppState
     searchResults,
     selectedSearchResultIndex,
     showSearch,
+    unpackAlbumCover,
   )
 import qualified AppState as APPSTATE (albumName, artistNames, trackName, trackPopularity)
 import Brick (App (..), AttrMap, AttrName, BrickEvent (..), EventM, Next, Padding (..), Widget, attrMap, continue, customMain, getVtyHandle, halt, on, padRight, str, vBox, vLimit, withAttr, withBorderStyle, (<+>))
@@ -105,8 +106,6 @@ theMap =
     V.defAttr
     [ (playAttr, V.white `on` V.green),
       (stopAttr, V.white `on` V.red),
-      (nextAttr, V.white `on` V.blue),
-      (previousAttr, V.white `on` V.cyan),
       (E.editAttr, V.white `on` V.black),
       (pAttr, V.black `on` V.green),
       (selectedAttr, V.white `on` V.magenta),
@@ -115,11 +114,9 @@ theMap =
       (progressIncompleteAttr, V.black `on` V.white)
     ]
 
-playAttr, stopAttr, nextAttr, previousAttr, pAttr, selectedAttr, progressCompleteAttr, progressIncompleteAttr, shortcutAttr :: AttrName
+playAttr, stopAttr, pAttr, selectedAttr, progressCompleteAttr, progressIncompleteAttr, shortcutAttr :: AttrName
 playAttr = "playAttr"
 stopAttr = "stopAttr"
-nextAttr = "nextAttr"
-previousAttr = "previousAttr"
 pAttr = "pAttr"
 selectedAttr = "selectedAttr"
 progressCompleteAttr = "progressComplete"
@@ -199,7 +196,7 @@ drawPopularity ui =
 
 drawAlbumCover :: UIState -> Widget Name
 drawAlbumCover ui = do
-  let image = ui ^. (appState . albumCover)
+  let image = unpackAlbumCover $ ui ^. (appState . albumCover)
   B.border $
     if ui ^. (appState . showSearch)
       then greedyRectangularImageWidget240 image

@@ -1,3 +1,5 @@
+{-# LANGUAGE MultiWayIf #-}
+
 -- | TODO refresh access token if expired
 -- TODO request new refresh token if not valid
 module Controller where
@@ -16,7 +18,8 @@ import ApiObjects.SearchResponse (SearchResponse (SearchResponse), items)
 import ApiObjects.Track (uri)
 import qualified ApiObjects.Track as TRACK (album, artists, durationMs, popularity, trackName)
 import AppState
-  ( AppState (AppState),
+  ( AlbumCover,
+    AppState (AppState),
     AppStateIO,
     accessToken,
     albumCover,
@@ -29,6 +32,7 @@ import AppState
     deviceVolumePercent,
     durationMs,
     isPlaying,
+    packAlbumCover,
     progressMs,
     searchInput,
     searchResults,
@@ -60,11 +64,11 @@ import qualified Authenticator as A
     getAuthorizationCode,
     getRefreshToken,
   )
-import Codec.Picture (Image, PixelRGB8)
 import Control.Lens (ix, preuse, use, view, (.=), (^.), (^?), _Just)
 import Control.Monad.IO.Class (MonadIO (liftIO))
 import Data.List (elemIndex)
 import Data.Maybe (fromJust)
+import Network.HTTP.Types (statusIsSuccessful)
 import qualified Persistence as P
   ( clientId,
     clientSecret,
@@ -77,8 +81,8 @@ import Utils.MaybeUtils (forceMaybeMsg, (?:))
 import Utils.StatusLenses (code)
 
 -- | placeholder that is displayed when no album cover is available
-defaultAlbumCover :: Image PixelRGB8
-defaultAlbumCover = generateRainbowImage
+defaultAlbumCover :: AlbumCover
+defaultAlbumCover = packAlbumCover generateRainbowImage
 
 search :: AppStateIO ()
 search = do
@@ -122,11 +126,12 @@ play = do
   at <- use accessToken
   status <- liftIO $ API.play at
   -- liftIO $ putStrLn $ show status
-  case (status ^. code) of
-    c | c `elem` [200, 202, 204] -> do
-      isPlaying .= True
-      updateCurrentTrackInfo
-    _ -> return () -- TODO handle error
+  if
+      | statusIsSuccessful status -> do
+        isPlaying .= True
+        updateCurrentTrackInfo
+      | otherwise -> return () -- TODO handle error
+
 
 playSelectedTrack :: AppStateIO ()
 playSelectedTrack = do
@@ -135,41 +140,41 @@ playSelectedTrack = do
   at <- use accessToken
   status <- liftIO $ API.playTrack at (fromJust uri')
   -- liftIO $ putStrLn $ show status
-  case (status ^. code) of
-    c | c `elem` [200, 202, 204] -> do
-      isPlaying .= True
-      showSearch .= False
-      updateCurrentTrackInfo
-    _ -> return () -- TODO handle error
+  if
+      | statusIsSuccessful status -> do
+        isPlaying .= True
+        showSearch .= False
+        updateCurrentTrackInfo
+      | otherwise -> return () -- TODO handle error
 
 pause :: AppStateIO ()
 pause = do
   at <- use accessToken
   status <- liftIO $ API.pause at
-  case (status ^. code) of
-    c | c `elem` [200, 202, 204] -> isPlaying .= False
-    _ -> return () -- TODO handle error
+  if
+      | statusIsSuccessful status -> isPlaying .= False
+      | otherwise -> return () -- TODO handle error
 
 next :: AppStateIO ()
 next = do
   at <- use accessToken
   status <- liftIO $ API.next at
   -- liftIO $ putStrLn $ show status
-  case (status ^. code) of
-    c | c `elem` [200, 202, 204] -> do
-      isPlaying .= True
-      updateCurrentTrackInfo
-    _ -> return () -- TODO handle error
+  if
+      | statusIsSuccessful status -> do
+        isPlaying .= True
+        updateCurrentTrackInfo
+      | otherwise -> return () -- TODO handle error
 
 previous :: AppStateIO ()
 previous = do
   at <- use accessToken
   status <- liftIO $ API.previous at
-  case (status ^. code) of
-    c | c `elem` [200, 202, 204] -> do
-      isPlaying .= True
-      updateCurrentTrackInfo
-    _ -> return () -- TODO handle error
+  if
+      | statusIsSuccessful status -> do
+        isPlaying .= True
+        updateCurrentTrackInfo
+      | otherwise -> return () -- TODO handle error
 
 -- | download albumCoverUrl and set albumCover
 updateAlbumCover :: AppStateIO ()
@@ -177,7 +182,7 @@ updateAlbumCover = do
   at <- use accessToken
   (status, response) <- liftIO $ API.getCurrentAlbumCover at
   case (status ^. code, response) of
-    (200, Just ac) -> albumCover .= ac
+    (200, Just ac) -> albumCover .= packAlbumCover ac
     _ -> return () -- TODO handle error
 
 updateCurrentTrackInfo :: AppStateIO ()
@@ -234,9 +239,11 @@ toggleDevice = do
           did' <- use deviceId
           return $ (elemIndex (did' ?: ("")) ids) ?: (-1)
         nextDeviceId :: AppStateIO (Maybe DeviceId)
-        nextDeviceId = do
-          ci <- currentDeviceIndex
-          return ((cycle ids) ^? (ix (ci + 1)))
+        nextDeviceId = case ids of
+          [] -> return Nothing
+          _ -> do
+            ci <- currentDeviceIndex
+            return ((cycle ids) ^? (ix (ci + 1)))
 
 -- | TODO handle error
 volumeUp :: AppStateIO ()
@@ -264,7 +271,7 @@ mandelbrot :: AppStateIO ()
 mandelbrot = do
   ac <- use albumCover
   if ac == defaultAlbumCover
-    then albumCover .= generateMandelbrotImage 256 256
+    then albumCover .= (packAlbumCover $ generateMandelbrotImage 256 256)
     else albumCover .= defaultAlbumCover
 
 -- | Request new access token on Spotify API

@@ -169,11 +169,11 @@ getPlayer accessToken = do
 
 getCurrentAlbumCover :: AccessToken -> IO (Status, Maybe (Image PixelRGB8))
 getCurrentAlbumCover accessToken = do
-  (status, currentPlaying) <- getCurrentlyPlaying accessToken
-  let url = currentPlaying >>= anyAlbumUrl
-  case url of
-    Nothing -> return (status, Nothing)
-    Just url -> getImage url
+  (status', currentPlaying) <- getCurrentlyPlaying accessToken
+  let url' = currentPlaying >>= anyAlbumUrl
+  case url' of
+    Nothing -> return (status', Nothing)
+    Just url'' -> getImage url''
   where
     anyAlbumUrl :: CurrentlyPlayingResponse -> Maybe String
     anyAlbumUrl response = response ^? (item . _Just . album . images . ix 0 . url)
