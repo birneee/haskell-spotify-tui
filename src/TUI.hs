@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module TUI (tuiMain, UIState) where
+module TUI (tuiMain) where
 
 import qualified ApiObjects.Album as ALBUM (albumName)
 import ApiObjects.Artist as ARTIST (artistName)
@@ -85,7 +85,6 @@ data SearchResultListItem = SearchResultListItem
   { _trackName :: String,
     _albumName :: String,
     _artistNames :: [String]
-    -- _trackUri :: Uri
   }
 
 $(makeLenses ''SearchResultListItem)
@@ -140,7 +139,7 @@ tuiMain = do
   void . forkIO $
     forever $ do
       writeBChan chan UpdateProgress
-      threadDelay 4000000 -- 2 seconds
+      threadDelay 4000000 -- 4 seconds
   let builder = V.mkVty V.defaultConfig
   initialVty <- builder
   _ <- customMain initialVty builder (Just chan) app state
@@ -281,10 +280,6 @@ drawHelp = C.padTop (Pad 1) $ C.hBox $ draw <$> help
       ]
 
 handleEvent :: UIState -> BrickEvent Name Event -> EventM Name (Next UIState)
-handleEvent ui (AppEvent MarkAlbumCoverDirty) = do
-  vty <- getVtyHandle
-  liftIO $ refresh vty
-  continue ui
 handleEvent ui (VtyEvent (V.EvKey V.KDown [])) = continue (ui & results %~ (\l -> L.listMoveDown l))
 handleEvent ui (VtyEvent (V.EvKey V.KUp [])) = continue (ui & results %~ (\l -> L.listMoveUp l))
 handleEvent ui (VtyEvent (V.EvKey (V.KEsc) []))
@@ -331,6 +326,10 @@ handleEvent ui (VtyEvent (V.EvKey (V.KChar 'm') [V.MMeta])) = do
 handleEvent ui (VtyEvent (V.EvKey (V.KChar 'u') [])) = do
   sendEvent MarkAlbumCoverDirty ui
   exec CONTROLLER.updateCurrentTrackInfo ui
+handleEvent ui (AppEvent MarkAlbumCoverDirty) = do
+  vty <- getVtyHandle
+  liftIO $ refresh vty
+  continue ui
 handleEvent ui (AppEvent UpdateProgress) = exec CONTROLLER.updateProgress ui
 handleEvent ui _ = continue ui
 
