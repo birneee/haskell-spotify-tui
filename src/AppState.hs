@@ -23,7 +23,7 @@ data AppState = AppState
     _albumName :: Maybe String,
     _artistNames :: [String],
     _albumCoverUrl :: Maybe String,
-    _albumCover :: Image PixelRGB8,
+    _albumCover :: AlbumCover,
     _showSearch :: Bool,
     _searchInput :: String,
     _searchResults :: [Track],
@@ -33,8 +33,16 @@ data AppState = AppState
   }
   deriving (Show)
 
-instance Show (Image a) where
-  show _ = "<image>"
+newtype AlbumCover = AlbumCover (Image PixelRGB8) deriving (Eq)
+
+unpackAlbumCover :: AlbumCover -> Image PixelRGB8
+unpackAlbumCover (AlbumCover image) = image
+
+packAlbumCover :: Image PixelRGB8 -> AlbumCover
+packAlbumCover image = AlbumCover image
+
+instance Show AlbumCover where
+  show _ = "<albumCover>"
 
 $(makeLenses ''AppState)
 
