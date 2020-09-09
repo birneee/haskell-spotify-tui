@@ -41,7 +41,7 @@ dependencies:
   - brick
   - vector
   - vty
-
+  - base-unicode-symbols
 library:
   source-dirs: src
 
