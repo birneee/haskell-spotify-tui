@@ -32,6 +32,7 @@ import AppState
     deviceVolumePercent,
     durationMs,
     isPlaying,
+    latestLocalProgressUpdateTimestamp,
     packAlbumCover,
     progressMs,
     searchInput,
@@ -51,6 +52,7 @@ import AppState
     _deviceVolumePercent,
     _durationMs,
     _isPlaying,
+    _latestLocalProgressUpdateTimestamp,
     _progressMs,
     _searchInput,
     _searchResults,
@@ -64,10 +66,12 @@ import qualified Authenticator as A
     getAuthorizationCode,
     getRefreshToken,
   )
-import Control.Lens (ix, preuse, use, view, (.=), (^.), (^?), _Just)
+import Control.Applicative (liftA)
+import Control.Lens (ix, preuse, use, view, (%=), (.=), (^.), (^?), _Just)
 import Control.Monad.IO.Class (MonadIO (liftIO))
 import Data.List (elemIndex)
 import Data.Maybe (fromJust)
+import Data.Time.Clock.POSIX (getPOSIXTime)
 import Network.HTTP.Types (statusIsSuccessful)
 import qualified Persistence as P
   ( clientId,
@@ -118,7 +122,8 @@ initAppState = do
         _searchResults = [],
         _selectedSearchResultIndex = 0,
         _progressMs = Nothing,
-        _durationMs = Nothing
+        _durationMs = Nothing,
+        _latestLocalProgressUpdateTimestamp = Nothing
       }
 
 play :: AppStateIO ()
@@ -131,7 +136,6 @@ play = do
         isPlaying .= True
         updateCurrentTrackInfo
       | otherwise -> return () -- TODO handle error
-
 
 playSelectedTrack :: AppStateIO ()
 playSelectedTrack = do
@@ -203,21 +207,23 @@ updateCurrentTrackInfo = do
       albumCoverUrl .= pr ^? (PR.item . _Just . TRACK.album . ALBUM.images . ix 0 . IMAGE.url)
       durationMs .= pr ^? (PR.item . _Just . TRACK.durationMs)
       progressMs .= pr ^. (PR.progressMs)
+
       updateAlbumCover
     _ -> return () -- TODO handle error
 
 -- | update track progress
--- TODO calculate progress locally
 updateProgress :: AppStateIO ()
 updateProgress = do
-  at <- use accessToken
-  (_, response) <- liftIO $ API.getPlayer at
-  case response of
-    Just pr -> do
-      progressMs .= pr ^. (PR.progressMs)
-    _ -> do
-      progressMs .= Nothing
-      return () -- TODO handle error
+  mOldTime <- use latestLocalProgressUpdateTimestamp
+  isPlaying' <- use isPlaying
+  now <- liftIO $ round <$> getPOSIXTime :: AppStateIO Int
+  case (isPlaying', mOldTime) of
+    (True, Just oldTime) -> do
+      let diff = (now - oldTime) * 1000 -- s to ms
+      progressMs %= liftA (+ diff)
+      latestLocalProgressUpdateTimestamp .= Just now
+    (True, Nothing) -> latestLocalProgressUpdateTimestamp .= Just now
+    _ -> latestLocalProgressUpdateTimestamp .= Nothing
 
 toggleDevice :: AppStateIO ()
 toggleDevice = do
