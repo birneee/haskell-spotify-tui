@@ -8,7 +8,7 @@ import ApiObjects.Artist as ARTIST (artistName)
 import ApiObjects.Track (Track, Uri, album, artists)
 import qualified ApiObjects.Track as TRACK (trackName, uri)
 import AppState
-  ( AppState,
+  (unpackAlbumCover,  AppState,
     AppStateIO,
     albumCover,
     deviceName,
@@ -202,7 +202,7 @@ drawPopularity ui =
 
 drawAlbumCover :: UIState -> Widget Name
 drawAlbumCover ui = do
-  let image = ui ^. (appState . albumCover)
+  let image = unpackAlbumCover $ ui ^. (appState . albumCover)
   B.border $
     if ui ^. (appState . showSearch)
       then greedyRectangularImageWidget240 image

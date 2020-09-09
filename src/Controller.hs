@@ -16,7 +16,8 @@ import ApiObjects.SearchResponse (SearchResponse (SearchResponse), items)
 import ApiObjects.Track (uri)
 import qualified ApiObjects.Track as TRACK (album, artists, durationMs, popularity, trackName)
 import AppState
-  ( AppState (AppState),
+  ( AlbumCover,
+    AppState (AppState),
     AppStateIO,
     accessToken,
     albumCover,
@@ -29,6 +30,7 @@ import AppState
     deviceVolumePercent,
     durationMs,
     isPlaying,
+    packAlbumCover,
     progressMs,
     searchInput,
     searchResults,
@@ -60,7 +62,6 @@ import qualified Authenticator as A
     getAuthorizationCode,
     getRefreshToken,
   )
-import Codec.Picture (Image, PixelRGB8)
 import Control.Lens (ix, preuse, use, view, (.=), (^.), (^?), _Just)
 import Control.Monad.IO.Class (MonadIO (liftIO))
 import Data.List (elemIndex)
@@ -77,8 +78,8 @@ import Utils.MaybeUtils (forceMaybeMsg, (?:))
 import Utils.StatusLenses (code)
 
 -- | placeholder that is displayed when no album cover is available
-defaultAlbumCover :: Image PixelRGB8
-defaultAlbumCover = generateRainbowImage
+defaultAlbumCover :: AlbumCover
+defaultAlbumCover = packAlbumCover generateRainbowImage
 
 search :: AppStateIO ()
 search = do
@@ -177,7 +178,7 @@ updateAlbumCover = do
   at <- use accessToken
   (status, response) <- liftIO $ API.getCurrentAlbumCover at
   case (status ^. code, response) of
-    (200, Just ac) -> albumCover .= ac
+    (200, Just ac) -> albumCover .= packAlbumCover ac
     _ -> return () -- TODO handle error
 
 updateCurrentTrackInfo :: AppStateIO ()
@@ -264,7 +265,7 @@ mandelbrot :: AppStateIO ()
 mandelbrot = do
   ac <- use albumCover
   if ac == defaultAlbumCover
-    then albumCover .= generateMandelbrotImage 256 256
+    then albumCover .= (packAlbumCover $ generateMandelbrotImage 256 256)
     else albumCover .= defaultAlbumCover
 
 -- | Request new access token on Spotify API
