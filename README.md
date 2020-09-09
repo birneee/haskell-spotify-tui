@@ -8,7 +8,7 @@
 
 ## Setup
 1. Create a Spotify App (https://developer.spotify.com/dashboard)
-  - add Redirect URIs: http://localhost:8888/callback
+  - go to Edit Settings and add Redirect URI: http://localhost:8888/callback
   - copy clientId and clientSecret to `config.json` file
     - `config.json` is created on first run in current directory
 2. Run application and login to Spotify (browser should open automatically)
@@ -55,4 +55,3 @@ haskell-spotify-tui
 - [transformers](https://hackage.haskell.org/package/transformers)
 - [warp](https://hackage.haskell.org/package/warp)
 - [brick](https://hackage.haskell.org/package/brick) for terminal user interface (TUI)
-- ... TODO
