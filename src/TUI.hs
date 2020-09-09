@@ -1,49 +1,30 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module TUI (tuiMain) where
+module TUI (tuiMain, UIState) where
 
 import qualified ApiObjects.Album as ALBUM (albumName)
 import ApiObjects.Artist as ARTIST (artistName)
-import ApiObjects.Track (Track, Uri, album, artists)
-import qualified ApiObjects.Track as TRACK (trackName, uri)
+import ApiObjects.Track (Track, album, artists)
+import qualified ApiObjects.Track as TRACK (trackName)
 import AppState
-  (unpackAlbumCover,  AppState,
+  ( AppState,
     AppStateIO,
     albumCover,
     deviceName,
     deviceVolumePercent,
+    durationMs,
     execAppStateIO,
     isPlaying,
+    progressMs,
     searchInput,
     searchResults,
     selectedSearchResultIndex,
     showSearch,
+    unpackAlbumCover,
   )
 import qualified AppState as APPSTATE (albumName, artistNames, trackName, trackPopularity)
-import Brick
-  ( App (..),
-    AttrMap,
-    AttrName,
-    BrickEvent (..),
-    EventM,
-    Next,
-    Padding (..),
-    Widget,
-    attrMap,
-    continue,
-    customMain,
-    getVtyHandle,
-    halt,
-    on,
-    padRight,
-    str,
-    vBox,
-    vLimit,
-    withAttr,
-    withBorderStyle,
-    (<+>),
-  )
+import Brick (App (..), AttrMap, AttrName, BrickEvent (..), EventM, Next, Padding (..), Widget, attrMap, continue, customMain, getVtyHandle, halt, on, padRight, str, vBox, vLimit, withAttr, withBorderStyle, (<+>))
 import Brick.BChan (BChan, newBChan, writeBChan)
 import qualified Brick.Main as M
 import qualified Brick.Types as T
@@ -59,10 +40,13 @@ import qualified Brick.Widgets.Core as C
 import qualified Brick.Widgets.Edit as E
 import Brick.Widgets.List (listSelectedL)
 import qualified Brick.Widgets.List as L
+import qualified Brick.Widgets.ProgressBar as P
+import Control.Concurrent (forkIO, threadDelay)
 import Control.Lens (makeLenses, over, (%~), (&), (.~), (^.))
+import Control.Monad (forever, void)
 import Control.Monad.IO.Class (MonadIO (liftIO))
 import qualified Controller as CONTROLLER
-  (volumeDown, volumeUp,  initAppState,
+  ( initAppState,
     mandelbrot,
     next,
     pause,
@@ -72,11 +56,16 @@ import qualified Controller as CONTROLLER
     search,
     toggleDevice,
     updateCurrentTrackInfo,
+    updateProgress,
+    volumeDown,
+    volumeUp,
   )
 import Data.List (intercalate)
 import qualified Data.Vector as Vec
+import GHC.Float (int2Float)
 import Graphics.Vty (Vty (refresh))
 import qualified Graphics.Vty as V
+import Text.Printf (printf)
 import Utils.MaybeUtils ((?:))
 import Widgets.ImageWidget (greedyRectangularImageWidget, greedyRectangularImageWidget240)
 import Widgets.Right (right)
@@ -84,6 +73,7 @@ import Widgets.Right (right)
 data Event
   = -- | forces vty to redraw album cover
     MarkAlbumCoverDirty
+  | UpdateProgress
 
 data Name
   = SearchEdit
@@ -94,8 +84,8 @@ data Name
 data SearchResultListItem = SearchResultListItem
   { _trackName :: String,
     _albumName :: String,
-    _artistNames :: [String],
-    _trackUri :: Uri
+    _artistNames :: [String]
+    -- _trackUri :: Uri
   }
 
 $(makeLenses ''SearchResultListItem)
@@ -119,14 +109,18 @@ theMap =
       (E.editAttr, V.white `on` V.black),
       (pAttr, V.black `on` V.green),
       (selectedAttr, V.white `on` V.magenta),
-      (shortcutAttr, V.black `on` V.white)
+      (shortcutAttr, V.black `on` V.white),
+      (progressCompleteAttr, V.black `on` V.brightBlue),
+      (progressIncompleteAttr, V.black `on` V.white)
     ]
 
-playAttr, stopAttr, pAttr, selectedAttr, shortcutAttr :: AttrName
+playAttr, stopAttr, pAttr, selectedAttr, progressCompleteAttr, progressIncompleteAttr, shortcutAttr :: AttrName
 playAttr = "playAttr"
 stopAttr = "stopAttr"
 pAttr = "pAttr"
 selectedAttr = "selectedAttr"
+progressCompleteAttr = "progressComplete"
+progressIncompleteAttr = "progressIncomplete"
 shortcutAttr = "shortcutAttr"
 
 app :: App UIState Event Name
@@ -143,6 +137,10 @@ tuiMain :: IO ()
 tuiMain = do
   state <- newUIState
   let chan = state ^. eventChannel
+  void . forkIO $
+    forever $ do
+      writeBChan chan UpdateProgress
+      threadDelay 4000000 -- 2 seconds
   let builder = V.mkVty V.defaultConfig
   initialVty <- builder
   _ <- customMain initialVty builder (Just chan) app state
@@ -158,7 +156,7 @@ drawUI :: UIState -> [Widget Name]
 drawUI ui = [C.center $ drawMain ui]
 
 drawMain :: UIState -> Widget Name
-drawMain ui = vLimit 100 $ vBox [drawDevice ui, drawMusic ui, drawFunction ui, drawHelp]
+drawMain ui = vLimit 100 $ vBox [drawDevice ui, drawMusic ui, drawFunction ui, drawProgressBar ui, drawHelp]
 
 drawDevice :: UIState -> Widget Name
 drawDevice ui =
@@ -207,21 +205,22 @@ drawAlbumCover ui = do
 drawFunction :: UIState -> Widget Name
 drawFunction ui =
   C.vLimit 3 $
-    C.center $ padRight (Pad 2) (drawPlay ui) 
+    C.center $
+      padRight (Pad 2) (drawPlay ui)
 
 drawSearch :: UIState -> Widget Name
 drawSearch ui =
   C.padLeftRight 1 (str "Search " <+> (vLimit 1 $ E.renderEditor (str . unlines) True (ui ^. edit)))
     <=> (C.hCenter (str "Track") <+> C.hCenter (str "Artists") <+> C.hCenter (str "Album"))
-    <=> viewport VPResultList T.Vertical (visible $ vLimit 20 $ drawResult ui) --TODO: call drawResult <=>
+    <=> viewport VPResultList T.Vertical (visible $ vLimit 20 $ drawResult ui)
 
 trackToSearchResultListItem :: Track -> SearchResultListItem
 trackToSearchResultListItem t =
   SearchResultListItem
     { _trackName = t ^. TRACK.trackName,
       _albumName = t ^. album ^. ALBUM.albumName,
-      _artistNames = map (\a -> a ^. ARTIST.artistName) (t ^. artists),
-      _trackUri = t ^. TRACK.uri
+      _artistNames = map (\a -> a ^. ARTIST.artistName) (t ^. artists)
+      -- _trackUri = t ^. TRACK.uri
     }
 
 drawResult :: UIState -> Widget Name
@@ -247,12 +246,26 @@ drawPlay ui
   | ui ^. appState ^. isPlaying = withAttr stopAttr $ str " ⏸ Stop "
   | otherwise = withAttr pAttr $ str " ▶ Play "
 
+drawProgressBar :: UIState -> Widget Name
+drawProgressBar ui = do
+  let totalDuration = ui ^. (appState . durationMs) ?: 0
+  let progressDuration = ui ^. (appState . progressMs) ?: 0
+  let progress = int2Float progressDuration / int2Float totalDuration
+  let text = millisecondsToText progressDuration ++ " / " ++ millisecondsToText totalDuration
+  P.progressBar (Just text) progress
+  where
+    millisecondsToText :: Int -> String
+    millisecondsToText t = do
+      let totalSec = t `quot` 1000
+      let (minutes, seconds) = totalSec `quotRem` 60
+      printf "%d:%02d" minutes seconds
+
 drawHelp :: Widget n
-drawHelp = C.hBox $ draw <$> help
+drawHelp = C.padTop (Pad 1) $ C.hBox $ draw <$> help
   where
     draw :: (String, String) -> Widget n
     draw (shortcut, description) =
-      padRight (Pad 2) $
+      C.padRight (Pad 2) $
         (withAttr shortcutAttr $ str shortcut)
           <+> (C.padLeft (Pad 1) $ str description)
     help :: [(String, String)]
@@ -318,6 +331,7 @@ handleEvent ui (VtyEvent (V.EvKey (V.KChar 'm') [V.MMeta])) = do
 handleEvent ui (VtyEvent (V.EvKey (V.KChar 'u') [])) = do
   sendEvent MarkAlbumCoverDirty ui
   exec CONTROLLER.updateCurrentTrackInfo ui
+handleEvent ui (AppEvent UpdateProgress) = exec CONTROLLER.updateProgress ui
 handleEvent ui _ = continue ui
 
 search :: UIState -> EventM Name (Next UIState)
