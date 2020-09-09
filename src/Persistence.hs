@@ -8,18 +8,20 @@ import Control.Applicative (optional)
 import Control.Exception.Base (SomeException, try)
 import Control.Lens (makeLenses, (&), (.~), (^.))
 import Data.Aeson
-  (withObject,  FromJSON (parseJSON),
+  ( FromJSON (parseJSON),
     KeyValue ((.=)),
     ToJSON (toEncoding, toJSON),
     decodeFileStrict,
     encode,
     object,
     pairs,
+    withObject,
     (.:),
   )
 import qualified Data.ByteString.Lazy as B
 -- import Utils.MaybeUtils ((?:))
-import UnicodeUtils ((❓), (📖), (📦))
+import Utils.UnicodeUtils ((❓), (📖), (📦))
+
 -- import Utils.StringUtils (Packable (pack), Unpackable (unpack))
 
 data ConfigItem = ConfigItem
@@ -82,4 +84,3 @@ loadRefreshToken :: IO (Maybe RefreshToken)
 loadRefreshToken = do
   content <- loadConfig
   return $ content ^. refreshToken
-
