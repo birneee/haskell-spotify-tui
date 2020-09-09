@@ -73,6 +73,7 @@ import Widgets.Right (right)
 data Event
   = -- | forces vty to redraw album cover
     MarkAlbumCoverDirty
+  | UpdateTrackInfo
   | UpdateProgress
 
 data Name
@@ -138,8 +139,12 @@ tuiMain = do
   let chan = state ^. eventChannel
   void . forkIO $
     forever $ do
+      writeBChan chan UpdateTrackInfo
+      threadDelay 5000000 -- 5 seconds
+  void . forkIO $
+    forever $ do
       writeBChan chan UpdateProgress
-      threadDelay 4000000 -- 4 seconds
+      threadDelay 500000 -- 0.5 seconds
   let builder = V.mkVty V.defaultConfig
   initialVty <- builder
   _ <- customMain initialVty builder (Just chan) app state
@@ -330,6 +335,7 @@ handleEvent ui (AppEvent MarkAlbumCoverDirty) = do
   vty <- getVtyHandle
   liftIO $ refresh vty
   continue ui
+handleEvent ui (AppEvent UpdateTrackInfo) = exec CONTROLLER.updateCurrentTrackInfo ui
 handleEvent ui (AppEvent UpdateProgress) = exec CONTROLLER.updateProgress ui
 handleEvent ui _ = continue ui
 
