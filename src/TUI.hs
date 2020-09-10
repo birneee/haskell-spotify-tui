@@ -298,6 +298,10 @@ handleEvent ui (VtyEvent (V.EvKey (V.KChar 'f') [V.MMeta])) = do
 handleEvent ui (VtyEvent (V.EvKey (V.KChar 'd') [V.MMeta])) = do
   sendEvent MarkAlbumCoverDirty ui
   exec CONTROLLER.toggleDevice ui
+handleEvent ui (VtyEvent (V.EvKey (V.KChar 'm') [V.MMeta])) = do
+  -- easter egg, Key: Alt + M
+  sendEvent MarkAlbumCoverDirty ui
+  exec CONTROLLER.mandelbrot ui
 handleEvent ui (VtyEvent (V.EvKey V.KEnter []))
   | ui ^. (appState . searchInput) == (head $ E.getEditContents $ ui ^. edit) = do
     let index = ui ^. (results . listSelectedL)
@@ -324,10 +328,6 @@ handleEvent ui (VtyEvent (V.EvKey (V.KChar 'n') [])) = do
 handleEvent ui (VtyEvent (V.EvKey (V.KChar 'p') [])) = do
   sendEvent MarkAlbumCoverDirty ui
   exec CONTROLLER.previous ui
-handleEvent ui (VtyEvent (V.EvKey (V.KChar 'm') [V.MMeta])) = do
-  -- easter egg, Key: Alt + M
-  sendEvent MarkAlbumCoverDirty ui
-  exec CONTROLLER.mandelbrot ui
 handleEvent ui (VtyEvent (V.EvKey (V.KChar 'u') [])) = do
   sendEvent MarkAlbumCoverDirty ui
   exec CONTROLLER.updateCurrentTrackInfo ui
