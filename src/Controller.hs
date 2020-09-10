@@ -5,7 +5,8 @@
 module Controller where
 
 --  Author: Benedikt Spies, Kai-Chun Lin
---  Controller is triggered by TUI-events and executes corresponding actions
+--  The responses of controller is based on the responses of Spotify API to the TUI-events
+--  if user is authorised, the triggered events are going to be executed by controller
 
 import qualified ApiClient as API (getAvailableDevices, getCurrentAlbumCover, getPlayer, next, pause, play, playTrack, previous, searchTrack, setPlayer, setVolume)
 import ApiObjects.AccessToken (AccessToken)
