@@ -4,6 +4,9 @@
 -- TODO request new refresh token if not valid
 module Controller where
 
+--  Author: Benedikt Spies, Kai-Chun Lin
+--  Controller is triggered by TUI-events and executes corresponding actions
+
 import qualified ApiClient as API (getAvailableDevices, getCurrentAlbumCover, getPlayer, next, pause, play, playTrack, previous, searchTrack, setPlayer, setVolume)
 import ApiObjects.AccessToken (AccessToken)
 import qualified ApiObjects.Album as ALBUM (albumName, images)
@@ -131,7 +134,6 @@ play = do
         isPlaying .= True
         updateCurrentTrackInfo
       | otherwise -> return () -- TODO handle error
-
 
 playSelectedTrack :: AppStateIO ()
 playSelectedTrack = do
