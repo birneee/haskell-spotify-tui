@@ -1,5 +1,9 @@
 {-# LANGUAGE OverloadedStrings #-}
 
+-- |
+--  Author: Benedikt Spies
+--
+--  Utility functions to convert Images to Ansi Sequences, which can be displayed on the terminal.
 module Utils.ImageAnsiTerminalUtils (imageToAnsi, imageToVty240, imageToVty) where
 
 import Codec.Picture (Image (imageHeight, imageWidth), PixelRGB8 (PixelRGB8), pixelAt)

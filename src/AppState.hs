@@ -1,6 +1,10 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE TemplateHaskell #-}
 
+-- |
+--  Author: Benedikt Spies, Kai-Chun Lin
+-- 
+--  State of the application, holding all relevant information to display and control the application.
 module AppState where
 
 import ApiObjects.AccessToken (AccessToken)

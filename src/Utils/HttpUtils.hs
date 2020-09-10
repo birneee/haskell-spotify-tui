@@ -1,3 +1,7 @@
+-- |
+--  Author: Benedikt Spies
+--
+--  Utility functions for HTTP Client
 module Utils.HttpUtils where
 
 import Codec.Picture (PixelRGB8, convertRGB8, decodeImage)
@@ -29,7 +33,7 @@ import qualified Network.Wai.Internal as Wai (Request)
 import Utils.MaybeUtils (rightToMaybe)
 import Utils.RequestLenses (method)
 import Utils.ResponseLenses (body, status)
-import Utils.StringUtils (Unpackable (unpack))
+import Utils.StringPack (Unpackable (unpack))
 
 -- | Create and url string from an Request type
 toUrl :: Request -> String

@@ -1,6 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 
+-- |
+--  Author: Benedikt Spies
 module ApiObjects.Album where
 
 import ApiObjects.Image (Image)

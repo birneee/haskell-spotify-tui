@@ -1,7 +1,10 @@
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE QuasiQuotes #-}
 
--- | Command Line Interface for the Spotify API
+-- |
+--  Author: Benedikt Spies
+--
+--  Command Line Interface for the Spotify API
 module CLI (cliMain) where
 
 import qualified ApiClient as API
