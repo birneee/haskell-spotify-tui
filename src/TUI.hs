@@ -1,6 +1,13 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 
+-- Author: Kai-Chun Lin
+-- Terminal based user interface (TUI) for the whole musik player which contains album cover, search-input field, play button and use-instruction
+-- This TUI consists on the following components:
+--   app: contains data type App s e n where s: state, e: event, n: name type
+--   handleEvent: take state as input and return event
+--   theMap: specifies attributes of TUI-elements
+
 module TUI (tuiMain, UIState) where
 
 import qualified ApiObjects.Album as ALBUM (albumName)
