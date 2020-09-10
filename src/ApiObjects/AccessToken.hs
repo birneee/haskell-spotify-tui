@@ -1,10 +1,14 @@
 {-# LANGUAGE OverloadedStrings #-}
 
+-- |
+--  Author: Benedikt Spies
+--
+--  AccessToken representation of the Spotify Account Service.
 module ApiObjects.AccessToken where
 
 import GHC.Exts (IsString (..))
 import Network.HTTP.Types.Header (Header)
-import Utils.StringUtils (Packable (..), Unpackable (..))
+import Utils.StringPack (Packable (..), Unpackable (..))
 
 newtype AccessToken = AccessToken String
   deriving (Show, Eq)

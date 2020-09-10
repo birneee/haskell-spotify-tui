@@ -1,7 +1,12 @@
 {-# LANGUAGE MultiWayIf #-}
 
--- | TODO refresh access token if expired
--- TODO request new refresh token if not valid
+-- |
+--  Author: Benedikt Spies, Kai-Chun Lin
+--
+--  Controlling the application and modifying the AppState
+--
+--  TODO refresh access token if expired
+--  TODO request new refresh token if not valid
 module Controller where
 
 import qualified ApiClient as API (getAvailableDevices, getCurrentAlbumCover, getPlayer, next, pause, play, playTrack, previous, searchTrack, setPlayer, setVolume)

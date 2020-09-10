@@ -1,6 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 
+-- |
+--  Author: Benedikt Spies
 module ApiObjects.Device where
 
 import Control.Lens (makeLenses)

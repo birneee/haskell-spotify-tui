@@ -1,5 +1,10 @@
 {-# LANGUAGE RankNTypes #-}
 
+-- |
+--  Author: Benedikt Spies
+--
+--  Utility functions to generate simple Images
+--  Image rows are generated in parallel
 module Utils.ImageGenerator (generateRainbowImage, generateMandelbrotImage) where
 
 import Codec.Picture
@@ -8,7 +13,7 @@ import Codec.Picture
     PixelRGB8 (PixelRGB8),
   )
 import Data.Complex (Complex ((:+)), magnitude)
-import Utils.ImageUtils (parGenerateImage)
+import Utils.ParallelImageUtils (parGenerateImage)
 
 generateRainbowImage :: Image PixelRGB8
 generateRainbowImage = parGenerateImage f 256 256
@@ -22,8 +27,6 @@ generateRainbowImage = parGenerateImage f 256 256
 
 generateMandelbrotImage :: Int -> Int -> Image PixelRGB8
 generateMandelbrotImage width height = parGenerateImage (generateMandelbrotPixel width height) width height
-
---generateMandelbrotImage width height = generateImage (generateMandelbrotPixel width height) width height
 
 generateMandelbrotPixel :: Int -> Int -> Int -> Int -> PixelRGB8
 generateMandelbrotPixel imageWidth imageHeight x y = color $ mandelbrot (x' / w' * 3 - 2) (y' / h' * 3 - 1.5)

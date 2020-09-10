@@ -1,6 +1,10 @@
 {-# LANGUAGE RankNTypes #-}
 
-module Utils.ImageUtils where
+-- |
+--  Author: Benedikt Spies
+--
+--  Utility functions for parallel image generation
+module Utils.ParallelImageUtils where
 
 import Codec.Picture
   ( Image (Image),

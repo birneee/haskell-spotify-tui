@@ -1,5 +1,9 @@
 {-# LANGUAGE OverloadedStrings #-}
 
+-- |
+--  Author: Benedikt Spies
+--
+--  Controlling the process of Authentication with the Spotify API via OAuth 2.0.
 module Authenticator where
 
 import ApiObjects.AccessToken (AccessToken)
@@ -47,7 +51,7 @@ import Utils.RequestLenses
     urlEncodedBody,
   )
 import Utils.ResponseLenses (body)
-import Utils.StringUtils (Packable (pack), Unpackable (unpack))
+import Utils.StringPack (Packable (pack), Unpackable (unpack))
 import Web.Browser (openBrowser)
 
 type ClientId = String
