@@ -4,6 +4,7 @@
 --  Author: Benedikt Spies, Kai-Chun Lin
 --
 --  Controlling the application and modifying the AppState
+--  The controller uses ApiClient to access Spotify API
 --
 --  TODO refresh access token if expired
 --  TODO request new refresh token if not valid
