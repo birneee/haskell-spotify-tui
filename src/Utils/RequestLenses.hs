@@ -1,5 +1,9 @@
 {-# LANGUAGE RankNTypes #-}
 
+-- |
+--  Author: Benedikt Spies
+--
+--  Lenses for Network.HTTP.Client Request data type
 module Utils.RequestLenses where
 
 import Control.Lens (Lens', lens)
@@ -18,7 +22,7 @@ import qualified Network.HTTP.Client as H
     urlEncodedBody,
   )
 import qualified Network.HTTP.Types as H (RequestHeaders)
-import Utils.StringUtils
+import Utils.StringPack ( Packable(pack), Unpackable(unpack) )
 
 method :: Lens' H.Request String
 method = lens getter setter

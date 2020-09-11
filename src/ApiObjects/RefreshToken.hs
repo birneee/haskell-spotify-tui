@@ -1,7 +1,11 @@
+-- |
+--  Author: Benedikt Spies
+--
+--  RefreshToken representation of the Spotify Account Service.
 module ApiObjects.RefreshToken where
 
 import GHC.Exts (IsString (..))
-import Utils.StringUtils (Packable (..), Unpackable (..))
+import Utils.StringPack (Packable (..), Unpackable (..))
 
 newtype RefreshToken = RefreshToken String
   deriving (Show, Eq)

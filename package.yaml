@@ -35,7 +35,6 @@ dependencies:
   - open-browser
   - strip-ansi-escape
   - template-haskell
-  - temporary
   - text
   - time
   - transformers

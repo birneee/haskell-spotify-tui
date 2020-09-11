@@ -1,7 +1,11 @@
+-- |
+--  Author: Benedikt Spies
+--
+--  Authorization code representation of the Spotify Account Service.
 module ApiObjects.AuthorizationCode where
 
 import GHC.Exts (IsString (..))
-import Utils.StringUtils (Packable (..), Unpackable (..))
+import Utils.StringPack (Packable (..), Unpackable (..))
 
 newtype AuthorizationCode = AuthorizationCode String
   deriving (Show, Eq)

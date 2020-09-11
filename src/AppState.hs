@@ -1,11 +1,15 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE TemplateHaskell #-}
 
+-- |
+--  Author: Benedikt Spies, Kai-Chun Lin
+--
+--  State of the application, holding all relevant information to display and control the application.
 module AppState where
 
 import ApiObjects.AccessToken (AccessToken)
 import ApiObjects.Device (DeviceId)
-import ApiObjects.Track (Track)
+import ApiObjects.Track (Track, Uri)
 import Codec.Picture.Types (Image, PixelRGB8)
 import Control.Lens (makeLenses)
 import Control.Monad.Trans.State (StateT, evalStateT, execStateT)
@@ -18,6 +22,7 @@ data AppState = AppState
     _deviceName :: Maybe String,
     _deviceType :: Maybe String,
     _deviceVolumePercent :: Maybe Int,
+    _trackUri :: Maybe Uri,
     _trackName :: Maybe String,
     _trackPopularity :: Maybe Int,
     _albumName :: Maybe String,

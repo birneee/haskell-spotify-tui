@@ -1,25 +1,21 @@
+-- |
+--  Author: Benedikt Spies
+--
+--  Brick Widget to right-align Widget
 module Widgets.Right where
 
-import Brick (Widget)
-import Brick.Types (Widget(vSize))
-import Brick (Size(Greedy))
-import Brick (Widget(Widget))
-import Brick (Widget(render))
-import Brick (getContext)
-import Brick (imageL)
+import Brick (Padding (Pad), Size (Greedy), Widget (Widget, render), availWidthL, getContext, imageL, raw)
+import Brick.Types (Widget (vSize))
+import Brick.Widgets.Core (padLeft)
 import Control.Lens ((^.))
 import Graphics.Vty (imageWidth)
-import Brick (availWidthL)
-import Brick.Widgets.Core (padLeft)
-import Brick (raw)
-import Brick (Padding(Pad))
 
 right :: Widget n -> Widget n
 right p = Widget Greedy (vSize p) $ do
-    result <- render p
-    c <- getContext
-    let image = result ^. imageL
-    let width = imageWidth image
-    let availableWidth = c ^. availWidthL
-    let pad = Pad (availableWidth - width)
-    render $ padLeft pad $ raw image
+  result <- render p
+  c <- getContext
+  let image = result ^. imageL
+  let width = imageWidth image
+  let availableWidth = c ^. availWidthL
+  let pad = Pad (availableWidth - width)
+  render $ padLeft pad $ raw image
