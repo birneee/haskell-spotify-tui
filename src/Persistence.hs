@@ -1,10 +1,13 @@
--- |
---  Author: Yang Mao
---
---  Module for the config file handling
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 
+-- |
+--  Author: Yang Mao
+--
+--  Module for the config file handling-- |
+--  Author: Yang Mao
+--
+--  Module for the config file handling
 module Persistence where
 
 import ApiObjects.RefreshToken (RefreshToken)
