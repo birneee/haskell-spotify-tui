@@ -4,9 +4,6 @@
 -- |
 --  Author: Yang Mao
 --
---  Module for the config file handling-- |
---  Author: Yang Mao
---
 --  Module for the config file handling
 module Persistence where
 
