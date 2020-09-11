@@ -19,7 +19,7 @@ import Control.Concurrent
 import Control.Lens.Getter ((^.))
 import Control.Lens.Operators ((<&>))
 import Control.Lens.Setter ((.~))
-import Data.Aeson (decode)
+import Data.Aeson (decode, eitherDecode)
 import Data.List (intercalate)
 import Data.Maybe (fromJust)
 import Network.HTTP.Client
@@ -100,8 +100,9 @@ getRefreshToken clientId clientSecret ac = do
   manager <- newManager tlsManagerSettings
   response <- httpLbs request manager
   let rawBody = response ^. body
-  let tr = fromJust $ decode rawBody
-  return $ tr ^. refreshToken
+  case eitherDecode rawBody of
+    Left err -> error err
+    Right tr -> return $ tr ^. refreshToken
 
 getAccessToken :: ClientId -> ClientSecret -> RefreshToken -> IO AccessToken
 getAccessToken clientId clientSecret rt = do

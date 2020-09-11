@@ -1,3 +1,5 @@
+{-# LANGUAGE MultiWayIf #-}
+
 -- | TODO refresh access token if expired
 -- TODO request new refresh token if not valid
 module Controller where
@@ -30,6 +32,7 @@ import AppState
     deviceVolumePercent,
     durationMs,
     isPlaying,
+    latestLocalProgressUpdateTimestamp,
     packAlbumCover,
     progressMs,
     searchInput,
@@ -49,6 +52,7 @@ import AppState
     _deviceVolumePercent,
     _durationMs,
     _isPlaying,
+    _latestLocalProgressUpdateTimestamp,
     _progressMs,
     _searchInput,
     _searchResults,
@@ -62,10 +66,13 @@ import qualified Authenticator as A
     getAuthorizationCode,
     getRefreshToken,
   )
-import Control.Lens (ix, preuse, use, view, (.=), (^.), (^?), _Just)
+import Control.Applicative (liftA)
+import Control.Lens (ix, preuse, use, view, (%=), (.=), (^.), (^?), _Just)
 import Control.Monad.IO.Class (MonadIO (liftIO))
 import Data.List (elemIndex)
 import Data.Maybe (fromJust)
+import Data.Time.Clock.POSIX (getPOSIXTime)
+import Network.HTTP.Types (statusIsSuccessful)
 import qualified Persistence as P
   ( clientId,
     clientSecret,
@@ -115,7 +122,8 @@ initAppState = do
         _searchResults = [],
         _selectedSearchResultIndex = 0,
         _progressMs = Nothing,
-        _durationMs = Nothing
+        _durationMs = Nothing,
+        _latestLocalProgressUpdateTimestamp = Nothing
       }
 
 play :: AppStateIO ()
@@ -123,11 +131,11 @@ play = do
   at <- use accessToken
   status <- liftIO $ API.play at
   -- liftIO $ putStrLn $ show status
-  case (status ^. code) of
-    c | c `elem` [200, 202, 204] -> do
-      isPlaying .= True
-      updateCurrentTrackInfo
-    _ -> return () -- TODO handle error
+  if
+      | statusIsSuccessful status -> do
+        isPlaying .= True
+        updateCurrentTrackInfo
+      | otherwise -> return () -- TODO handle error
 
 playSelectedTrack :: AppStateIO ()
 playSelectedTrack = do
@@ -136,41 +144,41 @@ playSelectedTrack = do
   at <- use accessToken
   status <- liftIO $ API.playTrack at (fromJust uri')
   -- liftIO $ putStrLn $ show status
-  case (status ^. code) of
-    c | c `elem` [200, 202, 204] -> do
-      isPlaying .= True
-      showSearch .= False
-      updateCurrentTrackInfo
-    _ -> return () -- TODO handle error
+  if
+      | statusIsSuccessful status -> do
+        isPlaying .= True
+        showSearch .= False
+        updateCurrentTrackInfo
+      | otherwise -> return () -- TODO handle error
 
 pause :: AppStateIO ()
 pause = do
   at <- use accessToken
   status <- liftIO $ API.pause at
-  case (status ^. code) of
-    c | c `elem` [200, 202, 204] -> isPlaying .= False
-    _ -> return () -- TODO handle error
+  if
+      | statusIsSuccessful status -> isPlaying .= False
+      | otherwise -> return () -- TODO handle error
 
 next :: AppStateIO ()
 next = do
   at <- use accessToken
   status <- liftIO $ API.next at
   -- liftIO $ putStrLn $ show status
-  case (status ^. code) of
-    c | c `elem` [200, 202, 204] -> do
-      isPlaying .= True
-      updateCurrentTrackInfo
-    _ -> return () -- TODO handle error
+  if
+      | statusIsSuccessful status -> do
+        isPlaying .= True
+        updateCurrentTrackInfo
+      | otherwise -> return () -- TODO handle error
 
 previous :: AppStateIO ()
 previous = do
   at <- use accessToken
   status <- liftIO $ API.previous at
-  case (status ^. code) of
-    c | c `elem` [200, 202, 204] -> do
-      isPlaying .= True
-      updateCurrentTrackInfo
-    _ -> return () -- TODO handle error
+  if
+      | statusIsSuccessful status -> do
+        isPlaying .= True
+        updateCurrentTrackInfo
+      | otherwise -> return () -- TODO handle error
 
 -- | download albumCoverUrl and set albumCover
 updateAlbumCover :: AppStateIO ()
@@ -199,21 +207,23 @@ updateCurrentTrackInfo = do
       albumCoverUrl .= pr ^? (PR.item . _Just . TRACK.album . ALBUM.images . ix 0 . IMAGE.url)
       durationMs .= pr ^? (PR.item . _Just . TRACK.durationMs)
       progressMs .= pr ^. (PR.progressMs)
+
       updateAlbumCover
     _ -> return () -- TODO handle error
 
 -- | update track progress
--- TODO calculate progress locally
 updateProgress :: AppStateIO ()
 updateProgress = do
-  at <- use accessToken
-  (_, response) <- liftIO $ API.getPlayer at
-  case response of
-    Just pr -> do
-      progressMs .= pr ^. (PR.progressMs)
-    _ -> do
-      progressMs .= Nothing
-      return () -- TODO handle error
+  mOldTime <- use latestLocalProgressUpdateTimestamp
+  isPlaying' <- use isPlaying
+  now <- liftIO $ round <$> getPOSIXTime :: AppStateIO Int
+  case (isPlaying', mOldTime) of
+    (True, Just oldTime) -> do
+      let diff = (now - oldTime) * 1000 -- s to ms
+      progressMs %= liftA (+ diff)
+      latestLocalProgressUpdateTimestamp .= Just now
+    (True, Nothing) -> latestLocalProgressUpdateTimestamp .= Just now
+    _ -> latestLocalProgressUpdateTimestamp .= Nothing
 
 toggleDevice :: AppStateIO ()
 toggleDevice = do
@@ -235,9 +245,11 @@ toggleDevice = do
           did' <- use deviceId
           return $ (elemIndex (did' ?: ("")) ids) ?: (-1)
         nextDeviceId :: AppStateIO (Maybe DeviceId)
-        nextDeviceId = do
-          ci <- currentDeviceIndex
-          return ((cycle ids) ^? (ix (ci + 1)))
+        nextDeviceId = case ids of
+          [] -> return Nothing
+          _ -> do
+            ci <- currentDeviceIndex
+            return ((cycle ids) ^? (ix (ci + 1)))
 
 -- | TODO handle error
 volumeUp :: AppStateIO ()

@@ -29,7 +29,8 @@ data AppState = AppState
     _searchResults :: [Track],
     _selectedSearchResultIndex :: Int,
     _progressMs :: Maybe Int,
-    _durationMs :: Maybe Int
+    _durationMs :: Maybe Int,
+    _latestLocalProgressUpdateTimestamp :: Maybe Int
   }
   deriving (Show)
 

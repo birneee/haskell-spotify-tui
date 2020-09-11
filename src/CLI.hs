@@ -1,3 +1,4 @@
+{-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE QuasiQuotes #-}
 
 -- | Command Line Interface for the Spotify API
@@ -31,6 +32,7 @@ import Control.Lens ((^.), (^?), _1, _Just)
 import Control.Monad (void)
 import Controller (requestAccessToken)
 import Data.List (intercalate)
+import Network.HTTP.Types (Status, status400, status403, status404, statusIsSuccessful)
 import System.Environment (getArgs)
 import System.Exit (die, exitSuccess)
 import TUI (tuiMain)
@@ -211,7 +213,7 @@ info = do
   case (status ^. code, response) of
     (200, Just response') -> printInfo response'
     (204, _) -> die $ "Currently nothing is playing"
-    (code'@_, _) -> exitWithUnknownHttpStatus $ code'
+    _ -> exitUnknownResponse status
   where
     printInfo :: PlayerResponse -> IO ()
     printInfo response = do
@@ -237,7 +239,7 @@ devices = do
   (status, response) <- API.getAvailableDevices accessToken
   case (status ^. code, response) of
     (200, Just response') -> printDevices (response' ^. DR.devices) >> exitSuccess
-    (code'@_, _) -> exitWithUnknownHttpStatus $ code'
+    _ -> exitUnknownResponse status
   where
     printDevices :: [Device] -> IO ()
     printDevices devices' = void $ sequenceA $ printDevice <$> devices'
@@ -254,37 +256,37 @@ play :: IO ()
 play = do
   accessToken <- requestAccessToken
   status <- API.play accessToken
-  case (status ^. code) of
-    code'@_ | code' == 202 || code' == 204 -> putStrLn "▶ Started Playback" >> exitSuccess
-    403 -> putStrLn "Playback cannot be started, the song may already be playing" >> exitSuccess
-    404 -> die $ "No active devices found"
-    code'@_ -> exitWithUnknownHttpStatus code'
+  if
+      | statusIsSuccessful status -> putStrLn "▶ Started Playback" >> exitSuccess
+      | status == status403 -> putStrLn "Playback cannot be started, the song may already be playing" >> exitSuccess
+      | status == status404 -> die $ "No active devices found"
+      | otherwise -> exitUnknownResponse $ status
 
 playTrack :: Uri -> IO ()
 playTrack uri' = do
   accessToken <- requestAccessToken
   status <- API.playTrack accessToken uri'
-  case (status ^. code) of
-    code'@_ | code' == 202 || code' == 204 -> putStrLn "▶ Playing Song" >> exitSuccess
-    code'@_ -> exitWithUnknownHttpStatus code'
+  if
+      | statusIsSuccessful status -> putStrLn "▶ Playing Song" >> exitSuccess
+      | otherwise -> exitUnknownResponse status
 
 playOnDevice :: DeviceId -> IO ()
 playOnDevice deviceId' = do
   accessToken <- requestAccessToken
   status <- API.setPlayer accessToken deviceId'
-  case (status ^. code) of
-    code'@_ | code' == 202 || code' == 204 -> putStrLn "📾  Set Device" >> exitSuccess
-    code'@_ -> exitWithUnknownHttpStatus code'
+  if
+      | statusIsSuccessful status -> putStrLn "📾  Set Device" >> exitSuccess
+      | otherwise -> exitUnknownResponse status
 
 pause :: IO ()
 pause = do
   accessToken <- requestAccessToken
   status <- API.pause accessToken
-  case (status ^. code) of
-    code'@_ | code' == 202 || code' == 204 -> putStrLn "⏸ Paused Playback" >> exitSuccess
-    403 -> putStrLn "Playback cannot be paused, the song may already be paused" >> exitSuccess
-    404 -> die $ "No active devices found"
-    code'@_ -> exitWithUnknownHttpStatus code'
+  if
+      | statusIsSuccessful status -> putStrLn "⏸ Paused Playback" >> exitSuccess
+      | status == status403 -> putStrLn "Playback cannot be paused, the song may already be paused" >> exitSuccess
+      | status == status404 -> die $ "No active devices found"
+      | otherwise -> exitUnknownResponse status
 
 next :: IO ()
 next = do
@@ -293,7 +295,7 @@ next = do
   case (status ^. code) of
     204 -> putStrLn "⏭️ Skipped to next track" >> exitSuccess
     404 -> die $ "No active devices found"
-    code'@_ -> exitWithUnknownHttpStatus code'
+    _ -> exitUnknownResponse status
 
 previous :: IO ()
 previous = do
@@ -302,7 +304,7 @@ previous = do
   case (status ^. code) of
     204 -> putStrLn "⏮️ Skipped to previous track" >> exitSuccess
     404 -> die $ "No active devices found"
-    code'@_ -> exitWithUnknownHttpStatus code'
+    _ -> exitUnknownResponse status
 
 getVolume :: IO ()
 getVolume = do
@@ -311,7 +313,7 @@ getVolume = do
   case (status ^. code, response) of
     (200, Just response') -> printVolume response'
     (204, _) -> die $ "No active devices found"
-    (code'@_, _) -> exitWithUnknownHttpStatus $ code'
+    _ -> exitUnknownResponse status
   where
     printVolume :: PlayerResponse -> IO ()
     printVolume response = do
@@ -322,11 +324,11 @@ setVolume :: Int -> IO ()
 setVolume value = do
   accessToken <- requestAccessToken
   status <- API.setVolume accessToken value
-  case (status ^. code) of
-    204 -> putStrLn ("🎚️ Set volume to " ++ (show value) ++ "%") >> exitSuccess
-    400 -> die $ "Illegal value"
-    404 -> die $ "No active devices found"
-    code'@_ -> exitWithUnknownHttpStatus code'
+  if
+      | statusIsSuccessful status -> putStrLn ("🎚️ Set volume to " ++ (show value) ++ "%") >> exitSuccess
+      | status == status400 -> die $ "Illegal value"
+      | status == status404 -> die $ "No active devices found"
+      | otherwise -> exitUnknownResponse status
 
-exitWithUnknownHttpStatus :: Int -> IO ()
-exitWithUnknownHttpStatus statusCode = die $ "An unknown error occured (http status code:" ++ show statusCode ++ ")"
+exitUnknownResponse :: Status -> IO ()
+exitUnknownResponse status = die $ "An unknown error occured (http status code:" ++ show (status ^. code) ++ ")"

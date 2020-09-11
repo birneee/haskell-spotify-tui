@@ -20,8 +20,10 @@ extra-source-files:
 description: Please see the README on GitHub at <https://github.com/githubuser/FFP-Project#readme>
 
 dependencies:
-  - base >= 4.7 && < 5
   - aeson
+  - base >= 4.7 && < 5
+  - base-unicode-symbols
+  - brick
   - bytestring
   - http-client
   - http-client-tls
@@ -35,13 +37,13 @@ dependencies:
   - template-haskell
   - temporary
   - text
+  - time
   - transformers
-  - wai
-  - warp
-  - brick
   - vector
   - vty
-  - base-unicode-symbols
+  - wai
+  - warp
+
 library:
   source-dirs: src
 

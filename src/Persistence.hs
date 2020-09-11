@@ -8,17 +8,17 @@ import Control.Applicative (optional)
 import Control.Exception.Base (SomeException, try)
 import Control.Lens (makeLenses, (&), (.~), (^.))
 import Data.Aeson
-  (withObject,  FromJSON (parseJSON),
+  ( FromJSON (parseJSON),
     KeyValue ((.=)),
     ToJSON (toEncoding, toJSON),
     decodeFileStrict,
     encode,
     object,
     pairs,
+    withObject,
     (.:),
   )
 import qualified Data.ByteString.Lazy as B
-
 -- (❓) = self defined conditional (ternary) operator, (📖) = unpack, (📦) = pack
 import UnicodeUtils ((❓), (📖), (📦))
 
@@ -40,7 +40,7 @@ instance FromJSON ConfigItem where
       <*> optional (v .: "clientSecret")
       <*> optional ((📦) <$> v .: "refreshToken")
 
--- | parse from ConfigItem to JSON string 
+-- | parse from ConfigItem to JSON string
 instance ToJSON ConfigItem where
   toJSON (ConfigItem clientId' clientSecret' refreshToken') =
     object
@@ -87,4 +87,3 @@ loadRefreshToken :: IO (Maybe RefreshToken)
 loadRefreshToken = do
   content <- loadConfig
   return $ content ^. refreshToken
-
