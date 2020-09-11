@@ -1,5 +1,9 @@
+-- |
+--  Author: Yang Mao
+--
+--  Module for unicode synonym to utility functions
+ 
 {-# LANGUAGE UnicodeSyntax #-}
-
 -- enables UnicodeSyntax
 
 module Utils.UnicodeUtils where

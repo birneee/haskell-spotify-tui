@@ -1,3 +1,7 @@
+-- |
+--  Author: Yang Mao
+--
+--  Module for the config file handling
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 
