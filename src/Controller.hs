@@ -4,14 +4,11 @@
 --  Author: Benedikt Spies, Kai-Chun Lin
 --
 --  Controlling the application and modifying the AppState
+--  The controller uses ApiClient to access Spotify API
 --
 --  TODO refresh access token if expired
 --  TODO request new refresh token if not valid
 module Controller where
-
---  Author: Benedikt Spies, Kai-Chun Lin
---  The responses of controller is based on the responses of Spotify API to the TUI-events
---  if user is authorised, the triggered events are going to be executed by controller
 
 import qualified ApiClient as API (getAvailableDevices, getCurrentAlbumCover, getPlayer, next, pause, play, playTrack, previous, searchTrack, setPlayer, setVolume)
 import ApiObjects.AccessToken (AccessToken)
