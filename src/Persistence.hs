@@ -20,7 +20,7 @@ import Data.Aeson
   )
 import qualified Data.ByteString.Lazy as B
 -- (❓) = self defined conditional (ternary) operator, (📖) = unpack, (📦) = pack
-import UnicodeUtils ((❓), (📖), (📦))
+import Utils.UnicodeUtils ((❓), (📖), (📦))
 
 -- | class for config object
 data ConfigItem = ConfigItem
