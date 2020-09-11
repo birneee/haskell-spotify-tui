@@ -1,6 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 
+-- |
+--  Author: Benedikt Spies
 module ApiObjects.AccessTokenResponse where
 
 import ApiObjects.AccessToken (AccessToken (..))

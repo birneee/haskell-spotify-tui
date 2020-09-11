@@ -1,5 +1,9 @@
 {-# LANGUAGE TemplateHaskell #-}
 
+-- |
+--  Author: Benedikt Spies
+--
+--  QuasiQuoter to include raw strings inside haskell source files
 module Utils.RawString (rawString, rawStringExp) where
 
 import Language.Haskell.TH (Exp, Q)

@@ -1,3 +1,7 @@
+-- |
+--  Author: Benedikt Spies
+--
+--  Brick Widget for displaying images
 module Widgets.ImageWidget where
 
 import Brick (Size (Greedy), Widget (render), availHeightL, availWidthL, getContext, raw)

@@ -1,10 +1,12 @@
+-- |
+--  Author: Benedikt Spies
+--
+--  Simple parser implementation
 module Utils.Parser where
 
 import Control.Applicative (Alternative, empty, (<|>))
-import Control.Lens.Cons (cons)
 import GHC.Unicode (isDigit, isHexDigit)
 
--- | simple parser implementation
 newtype Parser a = Parser
   { runParser :: String -> Maybe (a, String)
   }
@@ -75,5 +77,5 @@ endParser = Parser p
 
 oneOrMany :: Parser Char -> Parser String
 oneOrMany p =
-  (cons <$> p <*> (oneOrMany p))
+  ((:) <$> p <*> (oneOrMany p))
     <|> pure <$> p

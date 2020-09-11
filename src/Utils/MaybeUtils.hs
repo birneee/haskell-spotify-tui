@@ -1,3 +1,7 @@
+-- |
+--  Author: Benedikt Spies
+--
+--  Utility functions for working with Maybe
 module Utils.MaybeUtils where
 
 import Data.Maybe (fromMaybe)

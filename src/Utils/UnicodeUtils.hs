@@ -8,7 +8,7 @@ import Control.Lens (Getter)
 import Network.HTTP.Types (Status)
 import Utils.MaybeUtils ((?:))
 import Utils.StatusLenses (code)
-import Utils.StringUtils (Packable (pack), Unpackable (unpack))
+import Utils.StringPack (Packable (pack), Unpackable (unpack))
 
 -- synonym to self defined conditional (ternary) operator
 infixr 0 ❓

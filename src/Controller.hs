@@ -1,7 +1,12 @@
 {-# LANGUAGE MultiWayIf #-}
 
--- | TODO refresh access token if expired
--- TODO request new refresh token if not valid
+-- |
+--  Author: Benedikt Spies, Kai-Chun Lin
+--
+--  Controlling the application and modifying the AppState
+--
+--  TODO refresh access token if expired
+--  TODO request new refresh token if not valid
 module Controller where
 
 import qualified ApiClient as API (getAvailableDevices, getCurrentAlbumCover, getPlayer, next, pause, play, playTrack, previous, searchTrack, setPlayer, setVolume)
@@ -16,7 +21,7 @@ import qualified ApiObjects.PlayerResponse as PR (device, isPlaying, item, progr
 import ApiObjects.RefreshToken (RefreshToken)
 import ApiObjects.SearchResponse (SearchResponse (SearchResponse), items)
 import ApiObjects.Track (uri)
-import qualified ApiObjects.Track as TRACK (album, artists, durationMs, popularity, trackName)
+import qualified ApiObjects.Track as TRACK (album, artists, durationMs, popularity, trackName, uri)
 import AppState
   ( AlbumCover,
     AppState (AppState),
@@ -41,6 +46,7 @@ import AppState
     showSearch,
     trackName,
     trackPopularity,
+    trackUri,
     _accessToken,
     _albumCover,
     _albumCoverUrl,
@@ -60,6 +66,7 @@ import AppState
     _showSearch,
     _trackName,
     _trackPopularity,
+    _trackUri,
   )
 import qualified Authenticator as A
   ( getAccessToken,
@@ -88,6 +95,10 @@ import Utils.StatusLenses (code)
 defaultAlbumCover :: AlbumCover
 defaultAlbumCover = packAlbumCover generateRainbowImage
 
+-- | easter egg album cover
+mandelbrotAlbumCover :: AlbumCover
+mandelbrotAlbumCover = packAlbumCover $ generateMandelbrotImage 256 256
+
 search :: AppStateIO ()
 search = do
   input <- use searchInput
@@ -111,6 +122,7 @@ initAppState = do
         _deviceName = Nothing,
         _deviceType = Nothing,
         _deviceVolumePercent = Nothing,
+        _trackUri = Nothing,
         _trackName = Nothing,
         _trackPopularity = Nothing,
         _albumName = Nothing,
@@ -135,6 +147,7 @@ play = do
       | statusIsSuccessful status -> do
         isPlaying .= True
         updateCurrentTrackInfo
+        return ()
       | otherwise -> return () -- TODO handle error
 
 playSelectedTrack :: AppStateIO ()
@@ -149,6 +162,7 @@ playSelectedTrack = do
         isPlaying .= True
         showSearch .= False
         updateCurrentTrackInfo
+        return ()
       | otherwise -> return () -- TODO handle error
 
 pause :: AppStateIO ()
@@ -168,6 +182,7 @@ next = do
       | statusIsSuccessful status -> do
         isPlaying .= True
         updateCurrentTrackInfo
+        return ()
       | otherwise -> return () -- TODO handle error
 
 previous :: AppStateIO ()
@@ -178,16 +193,24 @@ previous = do
       | statusIsSuccessful status -> do
         isPlaying .= True
         updateCurrentTrackInfo
+        return ()
       | otherwise -> return () -- TODO handle error
 
 -- | download albumCoverUrl and set albumCover
 updateAlbumCover :: AppStateIO ()
 updateAlbumCover = do
-  at <- use accessToken
-  (status, response) <- liftIO $ API.getCurrentAlbumCover at
-  case (status ^. code, response) of
-    (200, Just ac) -> albumCover .= packAlbumCover ac
-    _ -> return () -- TODO handle error
+  ac <- use albumCover
+  if ac /= mandelbrotAlbumCover
+    then downloadAlbumCover
+    else return ()
+  where
+    downloadAlbumCover :: AppStateIO ()
+    downloadAlbumCover = do
+      at <- use accessToken
+      (status, response) <- liftIO $ API.getCurrentAlbumCover at
+      case (status ^. code, response) of
+        (200, Just ac) -> albumCover .= packAlbumCover ac
+        _ -> return () -- TODO handle error
 
 updateCurrentTrackInfo :: AppStateIO ()
 updateCurrentTrackInfo = do
@@ -200,6 +223,7 @@ updateCurrentTrackInfo = do
       deviceName .= Just (pr ^. (PR.device . DEVICE.deviceName))
       deviceType .= Just (pr ^. (PR.device . DEVICE.deviceType))
       deviceVolumePercent .= Just (pr ^. (PR.device . DEVICE.volumePercent))
+      trackUri .= pr ^? (PR.item . _Just . TRACK.uri)
       trackName .= pr ^? (PR.item . _Just . TRACK.trackName)
       trackPopularity .= pr ^? (PR.item . _Just . TRACK.popularity)
       albumName .= pr ^? (PR.item . _Just . TRACK.album . ALBUM.albumName)
@@ -276,9 +300,9 @@ volumeDown = do
 mandelbrot :: AppStateIO ()
 mandelbrot = do
   ac <- use albumCover
-  if ac == defaultAlbumCover
-    then albumCover .= (packAlbumCover $ generateMandelbrotImage 256 256)
-    else albumCover .= defaultAlbumCover
+  if ac == mandelbrotAlbumCover
+    then albumCover .= defaultAlbumCover
+    else albumCover .= mandelbrotAlbumCover
 
 -- | Request new access token on Spotify API
 requestAccessToken :: IO AccessToken

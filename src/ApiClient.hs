@@ -1,6 +1,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 
--- | Spotify API https://developer.spotify.com/documentation/web-api/reference-beta
+-- |
+--  Author: Benedikt Spies
+--  Spotify API Reference: https://developer.spotify.com/documentation/web-api/reference-beta
+--
+--  Communication with the Spotify REST Web API to control playback.
 module ApiClient where
 
 import ApiObjects.AccessToken

@@ -1,4 +1,8 @@
-module Utils.StringUtils where
+-- |
+--  Author: Benedikt Spies
+--
+--  Typeclasses for packing and unpacking Strings
+module Utils.StringPack where
 
 import Data.ByteString.Internal (ByteString, packChars, unpackChars)
 

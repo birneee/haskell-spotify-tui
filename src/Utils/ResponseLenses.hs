@@ -1,3 +1,7 @@
+-- |
+--  Author: Benedikt Spies
+--
+--  Lenses for Network.HTTP.Client Response data type
 module Utils.ResponseLenses where
 
 import Control.Lens.Getter (Getter, to)
