@@ -1,10 +1,8 @@
+{-# LANGUAGE UnicodeSyntax #-}
 -- |
 --  Author: Yang Mao
 --
 --  Module for unicode synonym to utility functions
- 
-{-# LANGUAGE UnicodeSyntax #-}
--- enables UnicodeSyntax
 
 module Utils.UnicodeUtils where
 
@@ -14,34 +12,30 @@ import Utils.MaybeUtils ((?:))
 import Utils.StatusLenses (code)
 import Utils.StringPack (Packable (pack), Unpackable (unpack))
 
--- synonym to self defined conditional (ternary) operator
 infixr 0 ❓
-
+-- | synonym to self defined conditional (ternary) operator
 (❓) :: Maybe a -> a -> a
 (❓) = (?:)
-
 -- {-# INLINE (❓) #-}
 
--- synonym to function pack
-infixr 9 📦
 
+infixr 9 📦
+-- | synonym to function pack
 (📦) :: Packable a => String -> a
 (📦) s = pack s
-
 -- {-# INLINE (📦) #-}
 
--- synonym to function unpack
-infixr 9 📖
 
+
+infixr 9 📖
+-- | synonym to function unpack
 (📖) :: Unpackable a => a -> String
 (📖) s = unpack s
-
 -- {-# INLINE (📖) #-}
 
--- synonym to function code
-infixr 9 🔢
 
+infixr 9 🔢
+-- | synonym to function code
 (🔢) :: Getter Status Int
 (🔢) = code
-
 -- {-# INLINE (🔢) #-}
