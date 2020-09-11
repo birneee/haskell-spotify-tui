@@ -1,6 +1,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 
+-- |
+--  Author: Yang Mao
+--
+--  Module for the config file handling
 module Persistence where
 
 import ApiObjects.RefreshToken (RefreshToken)
@@ -19,11 +23,10 @@ import Data.Aeson
     (.:),
   )
 import qualified Data.ByteString.Lazy as B
--- import Utils.MaybeUtils ((?:))
+-- (❓) = self defined conditional (ternary) operator, (📖) = unpack, (📦) = pack
 import Utils.UnicodeUtils ((❓), (📖), (📦))
 
--- import Utils.StringUtils (Packable (pack), Unpackable (unpack))
-
+-- | class for config object
 data ConfigItem = ConfigItem
   { _clientId :: Maybe String, -- um die Lens unterscheiden
     _clientSecret :: Maybe String,
@@ -33,6 +36,7 @@ data ConfigItem = ConfigItem
 
 $(makeLenses ''ConfigItem)
 
+-- | parse from JSON to ConfigItem Object
 instance FromJSON ConfigItem where
   parseJSON = withObject "ConfigItem" $ \v ->
     ConfigItem
@@ -40,6 +44,7 @@ instance FromJSON ConfigItem where
       <*> optional (v .: "clientSecret")
       <*> optional ((📦) <$> v .: "refreshToken")
 
+-- | parse from ConfigItem to JSON string
 instance ToJSON ConfigItem where
   toJSON (ConfigItem clientId' clientSecret' refreshToken') =
     object
@@ -54,9 +59,11 @@ instance ToJSON ConfigItem where
           <> "refreshToken" .= ((📖) <$> refreshToken')
       )
 
+-- | Path to the config file
 configFile :: FilePath
 configFile = "config.json"
 
+-- | save ConfigItem into config file
 saveConfig :: ConfigItem -> IO ()
 saveConfig config = B.writeFile configFile (encode config)
 
